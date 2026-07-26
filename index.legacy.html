@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<style id="critical-load">
+html.is-loading,html.is-loading body{overflow:hidden;}
+html.is-loading #app{opacity:0!important;visibility:hidden!important;pointer-events:none!important;}
+#loading-screen{position:fixed;inset:0;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#FAFAFA;color:#1A1A1A;}
+#loading-text{margin-bottom:16px;font-family:system-ui,sans-serif;font-size:14px;letter-spacing:0.22em;text-transform:uppercase;}
+#loading-bar-track{position:relative;width:240px;height:3px;overflow:hidden;border-radius:99px;background:rgba(0,0,0,0.08);}
+#loading-bar{position:absolute;top:0;left:0;height:100%;width:0%;background:#1A1A1A;border-radius:99px;transition:width 0.3s ease;}
+</style>
+<script>document.documentElement.classList.add('is-loading');</script>
+<title>Chael Dev — Full Stack Developer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Montserrat:wght@700;800;900&family=Space+Grotesk:wght@400;500;600&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+::selection{background:#CCFF00;color:#000;}
+html,body{width:100%;background:#FAFAFA;cursor:none;}
+html.lenis,html.lenis body{height:auto;}
+.lenis.lenis-smooth{scroll-behavior:auto!important;}
+body{font-family:'Space Grotesk',system-ui,sans-serif;color:#111;}
+canvas#bg{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;}
+
+#cursor{position:fixed;top:0;left:0;width:14px;height:14px;border:1.5px solid #CCFF00;border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:width 0.2s,height 0.2s,opacity 0.2s;mix-blend-mode:normal;}
+#cursor-dot{position:fixed;top:0;left:0;width:4px;height:4px;background:#CCFF00;border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);}
+body:hover #cursor{opacity:1;}
+
+header{position:fixed;top:0;left:0;right:0;z-index:30;display:flex;align-items:center;justify-content:space-between;padding:22px 40px;transition:transform 0.45s cubic-bezier(0.32,0.72,0,1),background 0.3s,box-shadow 0.3s;}
+header.nav-hidden{transform:translateY(-110%);}
+header.nav-scrolled{background:rgba(255,255,255,0.92);backdrop-filter:blur(12px);box-shadow:0 1px 0 rgba(0,0,0,0.05);}
+.logo-group{display:flex;align-items:center;gap:10px;cursor:none;}
+.logo-name{font-family:'Montserrat',sans-serif;font-weight:800;font-size:22px;letter-spacing:0.12em;text-transform:uppercase;color:#1A1A1A;}
+nav{display:flex;align-items:center;gap:28px;}
+.nav-link{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:rgba(0,0,0,0.45);text-decoration:none;transition:color 0.2s;cursor:none;}
+.nav-link:hover{color:#1A1A1A;}
+.btn-commission{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;background:#CCFF00;color:#000;border:none;padding:10px 22px;cursor:none;transition:opacity 0.2s;}
+.btn-commission:hover{opacity:0.85;}
+
+section.hero{position:sticky;top:0;width:100%;height:100vh;overflow:hidden;z-index:1;}
+main{position:absolute;inset:0;z-index:20;display:flex;align-items:center;padding:0 40px;padding-top:80px;padding-bottom:80px;}
+.hero-item,.hero-content-item,.hero-bio-item,.hero-nav-item,#imgWrap{will-change:transform,opacity;opacity:0;}
+
+.scroll-panel{position:relative;z-index:10;background:#FFFFFF;border-radius:40px 40px 0 0;box-shadow:0 -28px 80px rgba(0,0,0,0.07);overflow:hidden;}
+.scroll-panel::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:48px;height:4px;border-radius:99px;background:rgba(0,0,0,0.08);margin-top:14px;z-index:2;pointer-events:none;}
+
+.reveal-header,.reveal-line,.reveal-item{will-change:transform,opacity;}
+.left-col{flex:0 0 48%;display:flex;flex-direction:column;justify-content:center;z-index:20;position:relative;}
+.right-col{flex:0 0 52%;display:flex;align-items:center;justify-content:flex-end;position:relative;height:100%;}
+
+.headline-top{font-family:'Montserrat',sans-serif;font-weight:800;font-size:clamp(28px,5vw,72px);letter-spacing:0.04em;text-transform:uppercase;color:transparent;-webkit-text-stroke:1.5px #000000;-webkit-text-fill-color:transparent;line-height:1.05;display:block;}
+.headline-bottom{font-family:'Montserrat',sans-serif;font-weight:800;font-size:clamp(52px,10vw,148px);letter-spacing:0.02em;text-transform:uppercase;color:#1A1A1A;-webkit-text-fill-color:#1A1A1A;line-height:0.88;display:block;}
+.term-tag{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.14em;color:rgba(0,0,0,0.45);opacity:1;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.term-tag::before{content:'';width:24px;height:1px;background:#1A1A1A;opacity:0.35;display:inline-block;}
+.btn-view{margin-top:36px;display:inline-flex;align-items:center;gap:12px;font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:#000;background:#CCFF00;border:none;padding:14px 28px;cursor:none;transition:all 0.25s;width:fit-content;}
+.btn-view:hover{background:#111;color:#CCFF00;}
+.btn-view .arrow{font-size:16px;transition:transform 0.25s;}
+.btn-view:hover .arrow{transform:translateX(5px);}
+.stack-badges{margin-top:28px;display:flex;flex-wrap:wrap;gap:8px;}
+.badge{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:rgba(0,0,0,0.45);border:1px solid rgba(0,0,0,0.1);padding:5px 10px;}
+.bio-panel{
+    position: absolute;
+    top: 50%;
+    right: 10%;
+    transform: translateY(-50%);
+
+    width: 100%;
+    max-width: 500px;
+
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+
+    z-index: 20;
+}
+
+.bio-code-block{
+    position: relative;
+    background: rgba(0,0,0,.02);
+    border: 1px solid rgba(0,0,0,.06);
+    border-left: 3px solid #1A1A1A;
+    border-radius: 12px;
+    padding: 24px 28px;
+    backdrop-filter: blur(12px);
+}
+
+.bio-code-block::before{
+    content: "bio.ts";
+    position: absolute;
+    top: -10px;
+    left: 18px;
+
+    background: #FAFAFA;
+    padding: 2px 10px;
+    border-radius: 4px;
+
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 10px;
+    letter-spacing: .12em;
+    color: rgba(0,0,0,.4);
+}
+
+.bio-text{
+    font-family: "Space Grotesk", sans-serif;
+    font-size: clamp(13px,1.3vw,15px);
+    line-height: 1.8;
+    color: rgba(0,0,0,.65);
+}
+
+.bio-text em{
+    color: #1A1A1A;
+    font-style: normal;
+    font-weight: 700;
+}
+.cursor-blink{display:inline-block;width:2px;height:1em;background:#1A1A1A;vertical-align:middle;animation:blink 1s step-end infinite;margin-left:2px;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0;}}
+.stat-row{display:flex;border:1px solid rgba(0,0,0,0.06);}
+.stat{flex:1;padding:16px 18px;border-right:1px solid rgba(0,0,0,0.06);}
+.stat:last-child{border-right:none;}
+.stat-num{font-family:'Montserrat',sans-serif;font-weight:800;font-size:28px;color:#1A1A1A;line-height:1;}
+.stat-label{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:rgba(0,0,0,0.35);margin-top:4px;}
+
+.img-wrap{position:absolute;bottom:0;right:-40px;height:120%;max-height:88vh;z-index:10; margin-bottom: -100px;}
+#canvas-gray{position:absolute;bottom:0;right:0;height:100%;width:auto;display:block;}
+#canvas-color{position:absolute;bottom:0;right:0;height:100%;width:auto;display:block;pointer-events:none;mix-blend-mode:normal;}
+
+/* ── SECTION 2 — About/Showcase ───────────────────────────── */
+.about-section{position:relative;width:100%;background:#FFFFFF;padding:140px 40px 160px;overflow:hidden;z-index:5;}
+.about-section::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 20% 20%, rgba(204,255,0,0.06), transparent 50%);pointer-events:none;}
+.about-tag{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.14em;color:rgba(0,0,0,0.45);opacity:1;margin-bottom:18px;display:flex;align-items:center;gap:8px;justify-content:center;}
+.about-tag::before,.about-tag::after{content:'';width:24px;height:1px;background:#1A1A1A;opacity:0.35;display:inline-block;}
+.about-title{font-family:'Montserrat',sans-serif;font-weight:800;font-size:clamp(32px,5vw,64px);letter-spacing:0.03em;text-transform:uppercase;text-align:center;color:transparent;-webkit-text-stroke:1.5px #000000;-webkit-text-fill-color:transparent;margin-bottom:90px;line-height:1.1;}
+.about-title span{color:#1A1A1A;-webkit-text-stroke:0;-webkit-text-fill-color:#1A1A1A;}
+
+.about-grid{display:flex;align-items:center;justify-content:center;gap:60px;max-width:1300px;margin:0 auto;position:relative;}
+.about-col{flex:0 0 27%;display:flex;flex-direction:column;gap:36px;}
+.about-col.right{align-items:flex-end;text-align:right;}
+.about-img-col{flex:0 0 34%;display:flex;justify-content:center;position:relative;}
+.about-img-frame{
+  position:relative;
+  width:100%;
+  max-width:340px;
+  aspect-ratio:3/4;
+  border:1px solid rgba(204,255,0,0.18);
+  padding:14px;
+}
+.about-img-frame img{width:100%;height:100%;object-fit:cover;display:block;filter:grayscale(0.15) contrast(1.05);}
+.about-img-frame::after{content:'';position:absolute;top:-1px;left:-1px;width:36px;height:36px;border-top:2px solid #CCFF00;border-left:2px solid #CCFF00;}
+.about-img-frame::before{content:'';position:absolute;bottom:-1px;right:-1px;width:36px;height:36px;border-bottom:2px solid #CCFF00;border-right:2px solid #CCFF00;z-index:2;}
+
+.feature-block{display:flex;flex-direction:column;gap:10px;}
+.about-col.right .feature-block{align-items:flex-end;}
+.feature-num{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.12em;color:rgba(0,0,0,0.35);opacity:1;}
+.feature-title{font-family:'Montserrat',sans-serif;font-weight:800;font-size:20px;letter-spacing:0.03em;text-transform:uppercase;color:#1A1A1A;}
+.feature-desc{font-family:'Space Grotesk',sans-serif;font-size:13.5px;line-height:1.7;color:rgba(0,0,0,0.5);max-width:300px;}
+
+@media(max-width:980px){
+  .about-grid{flex-direction:column;gap:70px;}
+  .about-col,.about-img-col{flex:none;width:100%;align-items:center !important;text-align:center !important;}
+  .about-col.right .feature-block{align-items:center;}
+  .feature-desc{max-width:100%;}
+}
+
+/* ── SECTION 3 — Floating Tech Stack Hero ─────────────────── */
+.float-section{position:relative;width:100%;min-height:100vh;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#FFFFFF;padding:100px 40px 120px;z-index:5;}
+.float-section::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 50% 30%, rgba(204,255,0,0.05), transparent 55%);pointer-events:none;}
+.float-icons{position:absolute;inset:0;z-index:1;pointer-events:none;}
+.float-icon{position:absolute;display:flex;align-items:center;justify-content:center;width:64px;height:64px;border:1px solid rgba(0,0,0,0.08);background:rgba(0,0,0,0.02);backdrop-filter:blur(2px);animation:floatY 6s ease-in-out infinite;}
+.float-icon img,.float-icon svg{width:30px;height:30px;}
+.float-icon-label{position:absolute;bottom:-22px;left:50%;transform:translateX(-50%);font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:0.1em;text-transform:uppercase;color:rgba(0,0,0,0.35);white-space:nowrap;}
+@keyframes floatY{0%,100%{transform:translateY(0px);}50%{transform:translateY(-22px);}}
+
+.float-content{position:relative;z-index:10;max-width:680px;text-align:center;}
+.float-tag{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.14em;color:rgba(0,0,0,0.45);opacity:1;margin-bottom:18px;display:flex;align-items:center;gap:8px;justify-content:center;}
+.float-tag::before,.float-tag::after{content:'';width:24px;height:1px;background:#1A1A1A;opacity:0.35;display:inline-block;}
+.float-title{font-family:'Montserrat',sans-serif;font-weight:800;font-size:clamp(34px,5.5vw,72px);letter-spacing:0.02em;text-transform:uppercase;color:transparent;-webkit-text-stroke:1.5px #000000;-webkit-text-fill-color:transparent;line-height:1.05;margin-bottom:24px;}
+.float-title span{color:#1A1A1A;-webkit-text-stroke:0;-webkit-text-fill-color:#1A1A1A;}
+.float-desc{font-family:'Space Grotesk',sans-serif;font-size:15px;line-height:1.8;color:rgba(0,0,0,0.5);margin-bottom:36px;}
+.float-cta{display:inline-flex;align-items:center;gap:12px;font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:#000;background:#CCFF00;border:none;padding:14px 28px;cursor:none;transition:all 0.25s;}
+.float-cta:hover{background:#111;color:#CCFF00;}
+
+@media(max-width:768px){
+  .float-icons .float-icon:nth-child(n+5){display:none;}
+  .float-icon{width:50px;height:50px;}
+  .float-icon img,.float-icon svg{width:24px;height:24px;}
+}
+
+.footer-marquee{position:relative;z-index:5;overflow:hidden;height:64px;display:flex;align-items:center;border-top:1px solid rgba(0,0,0,0.06);background:#F5F5F5;padding-bottom:env(safe-area-inset-bottom,0);}
+.marquee-track{display:flex;white-space:nowrap;animation:scroll 26s linear infinite;}
+.marquee-text{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:rgba(0,0,0,0.12);padding-right:64px;flex-shrink:0;}
+.marquee-sep{color:#1A1A1A;opacity:0.25;}
+@keyframes scroll{0%{transform:translateX(0);}100%{transform:translateX(-50%);}}
+
+.v-line{position:fixed;left:50%;top:0;bottom:0;width:1px;background:rgba(0,0,0,0.04);z-index:1;pointer-events:none;}
+
+.drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:40;opacity:0;pointer-events:none;transition:opacity 0.35s;}
+.drawer-overlay.open{opacity:1;pointer-events:all;}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(560px,95vw);background:#FFFFFF;z-index:50;transform:translateX(100%);transition:transform 0.4s cubic-bezier(0.32,0.72,0,1);display:flex;flex-direction:column;border-left:1px solid rgba(0,0,0,0.08);box-shadow:-8px 0 40px rgba(0,0,0,0.06);}
+.drawer.open{transform:translateX(0);}
+.drawer-header{display:flex;align-items:center;justify-content:space-between;padding:20px 28px;border-bottom:1px solid rgba(0,0,0,0.06);}
+.drawer-title{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:rgba(0,0,0,0.35);}
+.drawer-close{background:none;border:1px solid rgba(0,0,0,0.12);color:#111;width:34px;height:34px;cursor:none;font-size:16px;display:flex;align-items:center;justify-content:center;transition:border-color 0.2s;}
+.drawer-close:hover{border-color:#CCFF00;color:#CCFF00;}
+.drawer-body{flex:1;overflow-y:auto;}
+.menu-item{display:flex;align-items:center;justify-content:space-between;padding:20px 28px;cursor:none;border-bottom:1px solid rgba(0,0,0,0.04);transition:background 0.2s;}
+.menu-item:hover{background:rgba(204,255,0,0.08);}
+.menu-item-label{font-family:'Montserrat',sans-serif;font-weight:800;font-size:clamp(26px,4vw,38px);letter-spacing:0.04em;text-transform:uppercase;color:#1A1A1A;transition:color 0.2s;}
+.menu-item:hover .menu-item-label{color:#000;}
+.menu-item-num{font-family:'IBM Plex Mono',monospace;font-size:10px;color:rgba(0,0,0,0.2);}
+.form-panel{padding:28px;}
+.form-panel h3{font-family:'Montserrat',sans-serif;font-weight:800;font-size:26px;text-transform:uppercase;letter-spacing:0.06em;color:#1A1A1A;margin-bottom:22px;}
+.field{margin-bottom:18px;}
+.field label{display:block;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(0,0,0,0.4);margin-bottom:6px;}
+.field input,.field textarea,.field select{width:100%;background:transparent;border:none;border-bottom:1px solid rgba(0,0,0,0.15);color:#111;font-family:'Space Grotesk',sans-serif;font-size:14px;padding:8px 0;outline:none;transition:border-color 0.2s;resize:none;}
+.field input:focus,.field textarea:focus,.field select:focus{border-bottom-color:#CCFF00;}
+.field select option{background:#fff;color:#111;}
+.field textarea{height:90px;}
+.btn-submit{width:100%;background:#CCFF00;color:#000;border:none;padding:14px;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.14em;text-transform:uppercase;cursor:none;margin-top:8px;transition:opacity 0.2s;}
+.btn-submit:hover{opacity:0.88;}
+.back-btn{background:none;border:none;color:rgba(0,0,0,0.4);font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.12em;text-transform:uppercase;cursor:none;display:flex;align-items:center;gap:6px;transition:color 0.2s;}
+.back-btn:hover{color:#CCFF00;}
+
+#loading-screen{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#FAFAFA;color:#1A1A1A;font-weight:300;}
+#loading-text{margin-bottom:16px;font-family:'IBM Plex Mono',monospace;font-size:14px;letter-spacing:0.22em;text-transform:uppercase;animation:loading-pulse 2s ease-in-out infinite;}
+@keyframes loading-pulse{0%,100%{opacity:1;}50%{opacity:0.4;}}
+#loading-bar-track{position:relative;width:240px;height:3px;overflow:hidden;border-radius:99px;background:rgba(0,0,0,0.08);}
+#loading-bar{position:absolute;top:0;left:0;height:100%;width:0%;background:#1A1A1A;border-radius:99px;transition:width 0.3s ease;}
+
+#app{opacity:0;visibility:hidden;pointer-events:none;}
+#app.is-ready{opacity:1!important;visibility:visible!important;pointer-events:auto!important;transition:opacity 1s ease;}
+#app.is-ready .scroll-panel{opacity:0;transform:translateY(48px);}
+#app.is-ready.hero-visible .scroll-panel{opacity:1;transform:translateY(0);transition:opacity 0.9s ease,transform 0.9s cubic-bezier(0.32,0.72,0,1);}
+
+@media(max-width:768px){
+  main{flex-direction:column;padding:90px 20px 80px;gap:32px;}
+  .left-col,.right-col{flex:none;width:100%;height:auto;}
+  .right-col{justify-content:center;}
+  .img-wrap{display:none;}
+  nav .nav-link{display:none;}
+  header{padding:16px 20px;}
+  .bio-panel{position:static;transform:none;max-width:100%;}
+}
+</style>
+</head>
+<body>
+
+<div id="loading-screen" aria-live="polite" aria-busy="true">
+  <p id="loading-text">Loading 0%</p>
+  <div id="loading-bar-track">
+    <div id="loading-bar"></div>
+  </div>
+</div>
+<script>
+(function () {
+  var progress = 0;
+  window.__updateLoadProgress = function (value) {
+    progress = Math.max(progress, Math.min(100, value));
+    var text = document.getElementById('loading-text');
+    var bar = document.getElementById('loading-bar');
+    var display = Math.floor(progress);
+    if (text) text.textContent = 'Loading ' + display + '%';
+    if (bar) bar.style.width = display + '%';
+  };
+  var tick = setInterval(function () {
+    if (window.__loadManagerActive) {
+      clearInterval(tick);
+      return;
+    }
+    if (progress < 42) window.__updateLoadProgress(progress + 1.5 + Math.random() * 2.5);
+  }, 90);
+})();
+</script>
+
+<div id="app" aria-hidden="true">
+
+<div id="cursor"></div>
+<div id="cursor-dot"></div>
+
+<canvas id="bg"></canvas>
+<div class="v-line"></div>
+
+<header class="hero-header">
+  <div class="logo-group hero-nav-item">
+    <span class="logo-name">Chael</span>
+  </div>
+  <nav>
+    <a href="#hero" class="nav-link hero-nav-item">Home</a>
+    <a href="#toolkit" class="nav-link hero-nav-item">Toolkit</a>
+    <a href="#" class="nav-link hero-nav-item" id="navProjects">Projects</a>
+    <a href="#" class="nav-link hero-nav-item" id="navContact">Contact</a>
+    <button class="btn-commission hero-nav-item" id="openDrawer">Commission</button>
+  </nav>
+</header>
+
+<section class="hero" id="hero">
+<main>
+  <div class="left-col">
+    <div class="term-tag hero-content-item">Full Stack Developer</div>
+    <span class="headline-top hero-content-item">Create with</span>
+    <span class="headline-bottom hero-content-item" id="rotatingWord">INTENT</span>
+    <div class="stack-badges hero-content-item">
+      <span class="badge">React</span>
+      <span class="badge">TypeScript</span>
+      <span class="badge">Node.js</span>
+      <span class="badge">Next.js</span>
+      <span class="badge">PostgreSQL</span>
+      <span class="badge">Docker</span>
+    </div>
+    <button class="btn-view hero-content-item" id="viewProjectsBtn">
+      View Projects <span class="arrow">→</span>
+    </button>
+  </div>
+
+  <div class="right-col">
+    <div class="img-wrap" id="imgWrap">
+      <canvas id="canvas-gray"></canvas>
+      <canvas id="canvas-color"></canvas>
+    </div>
+
+    <div class="bio-panel hero-bio-item">
+      <div class="bio-code-block">
+        <p class="bio-text">
+          I'm <em>Chael</em> — a Full Stack Developer specializing in modern web development, turning ideas into fast, secure, and engaging digital experiences.<span class="cursor-blink"></span>
+        </p>
+      </div>
+      <div class="stat-row">
+        <div class="stat"><div class="stat-num">50+</div><div class="stat-label">Projects</div></div>
+        <div class="stat"><div class="stat-num">5yr</div><div class="stat-label">Experience</div></div>
+        <div class="stat"><div class="stat-num">∞</div><div class="stat-label">Coffee</div></div>
+      </div>
+    </div>
+  </div>
+</main>
+</section>
+
+<!-- ══════════════ SECTION 2 — ABOUT / AOS ANIMATED ══════════════
+<section class="about-section">
+  <div class="about-tag" data-aos="fade-up" data-aos-duration="700">What I Bring</div>
+  <h2 class="about-title" data-aos="fade-up" data-aos-duration="800" data-aos-delay="100">
+    Engineering meets <span>Design</span>
+  </h2>
+
+  <div class="about-grid">
+    <div class="about-col">
+      <div class="feature-block" data-aos="fade-right" data-aos-duration="900" data-aos-delay="100">
+        <span class="feature-num">01</span>
+        <span class="feature-title">Clean Architecture</span>
+        <p class="feature-desc">Scalable, maintainable systems built with modern patterns — from database schema to API design.</p>
+      </div>
+      <div class="feature-block" data-aos="fade-right" data-aos-duration="900" data-aos-delay="250">
+        <span class="feature-num">02</span>
+        <span class="feature-title">Performance First</span>
+        <p class="feature-desc">Every interaction optimized for speed — lazy loading, caching, and lean bundles by default.</p>
+      </div>
+    </div>
+
+    <div class="about-img-col">
+      <div class="about-img-frame" data-aos="fade-down" data-aos-duration="1000" data-aos-delay="150">
+        <img src="./homeImg.png" alt="Chael Dev portrait"/>
+      </div>
+    </div>
+
+    <div class="about-col right">
+      <div class="feature-block" data-aos="fade-left" data-aos-duration="900" data-aos-delay="100">
+        <span class="feature-num">03</span>
+        <span class="feature-title">Secure by Design</span>
+        <p class="feature-desc">Authentication, validation, and data handling built with security as a first-class concern.</p>
+      </div>
+      <div class="feature-block" data-aos="fade-left" data-aos-duration="900" data-aos-delay="250">
+        <span class="feature-num">04</span>
+        <span class="feature-title">Pixel-Perfect UI</span>
+        <p class="feature-desc">Interfaces crafted with motion and detail — every hover, transition, and layout intentional.</p>
+      </div>
+    </div>
+  </div>
+</section> -->
+
+<!-- ══════════════ SCROLL PANEL — slides over sticky hero ══════════════ -->
+<div class="scroll-panel" id="scrollPanel">
+
+<!-- ══════════════ SECTION 3 — FLOATING TECH STACK ══════════════ -->
+<section class="float-section" id="toolkit">
+  <div class="float-icons">
+    <div class="float-icon reveal-item" style="top:12%;left:8%;animation-delay:0s;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#61DAFB" stroke-width="1.5"><circle cx="12" cy="12" r="2.2" fill="#61DAFB" stroke="none"/><ellipse cx="12" cy="12" rx="10" ry="4.2"/><ellipse cx="12" cy="12" rx="10" ry="4.2" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="10" ry="4.2" transform="rotate(120 12 12)"/></svg>
+      <span class="float-icon-label">React</span>
+    </div>
+    <div class="float-icon reveal-item" style="top:18%;right:10%;animation-delay:1.2s;">
+      <svg viewBox="0 0 24 24" fill="#3178C6"><path d="M2 2h20v20H2V2zm10.62 13.84c.4.66 1.04 1.16 2 1.16.94 0 1.5-.48 1.5-1.14 0-.78-.62-1.06-1.66-1.5l-.58-.24c-1.66-.7-2.76-1.58-2.76-3.44 0-1.72 1.3-3.02 3.36-3.02 1.46 0 2.5.5 3.26 1.84l-1.78 1.14c-.4-.7-.82-.98-1.48-.98-.68 0-1.1.42-1.1.98 0 .68.42.96 1.4 1.38l.58.24c1.96.84 3.06 1.68 3.06 3.6 0 2.06-1.62 3.2-3.8 3.2-2.12 0-3.5-1.02-4.18-2.36l1.18-1.86zM6.5 9.7H9v8.3h2.1V9.7h2.5V7.84H6.5V9.7z"/></svg>
+      <span class="float-icon-label">TypeScript</span>
+    </div>
+    <div class="float-icon reveal-item" style="bottom:18%;left:12%;animation-delay:2s;">
+      <svg viewBox="0 0 24 24" fill="#83CD29"><path d="M12 1.85c-.27 0-.55.07-.78.2L3.94 6.13c-.5.29-.79.81-.79 1.38v9.04c0 .57.3 1.09.79 1.38l1.95 1.12c.94.47 1.29.46 1.72.46 1.42 0 2.24-.86 2.24-2.36V8.66c0-.12-.1-.21-.21-.21H8.8c-.12 0-.21.09-.21.21v8.49c0 .67-.69 1.33-1.81.76l-2.08-1.2a.22.22 0 01-.1-.19V7.51c0-.08.04-.16.11-.19l7.09-4.09c.07-.04.16-.04.22 0l7.09 4.09c.07.04.11.11.11.19v8.18c0 .15-.13.27-.28.27-.04 0-.08-.01-.13-.04l-2.01-1.13c-.08-.04-.18-.04-.25 0-.42.24-.95.4-1.51.4-1.74 0-2.86-1.06-2.86-2.78V9.7c0-.12-.09-.21-.21-.21H11.7c-.12 0-.21.09-.21.21v3.07c0 2.39 1.94 4.13 4.39 4.13.74 0 1.51-.17 2.18-.5l2.01 1.16c.5.29 1.08.29 1.58 0 .5-.29.79-.81.79-1.38V7.51c0-.57-.3-1.09-.79-1.38L12.78 2.05c-.23-.13-.51-.2-.78-.2z"/></svg>
+      <span class="float-icon-label">Node.js</span>
+    </div>
+    <div class="float-icon reveal-item" style="bottom:12%;right:8%;animation-delay:3s;">
+      <svg viewBox="0 0 24 24" fill="#111"><path d="M11.214.006a1.85 1.85 0 00-1.075.288L1.402 5.49c-.668.386-1.083 1.1-1.083 1.872v9.282c0 .773.415 1.487 1.083 1.872l8.737 5.196a1.84 1.84 0 001.722.06l2.04-1.077-2.227-1.323a.45.45 0 01-.227-.392V8.31a.45.45 0 01.227-.391l8.736-5.197a1.85 1.85 0 011.722-.06L18.288.288A1.85 1.85 0 0017.213 0z" opacity="0"/><circle cx="12" cy="12" r="10" fill="none" stroke="#111" stroke-width="1.5"/><circle cx="12" cy="12" r="3" fill="#111"/></svg>
+      <span class="float-icon-label">Next.js</span>
+    </div>
+    <div class="float-icon reveal-item" style="top:50%;left:4%;animation-delay:1.6s;">
+      <svg viewBox="0 0 24 24" fill="#336791"><ellipse cx="12" cy="12" rx="10" ry="10"/><path d="M12 6c-3.3 0-6 2.7-6 6s2.7 6 6 6 6-2.7 6-6-2.7-6-6-6z" fill="#fff"/></svg>
+      <span class="float-icon-label">PostgreSQL</span>
+    </div>
+    <div class="float-icon reveal-item" style="top:48%;right:4%;animation-delay:2.6s;">
+      <svg viewBox="0 0 24 24" fill="#2496ED"><path d="M13.98 11.04h2.1v-1.96h-2.1v1.96zm-2.7 0h2.1v-1.96h-2.1v1.96zm-2.7 0h2.1v-1.96h-2.1v1.96zm-2.7 0h2.1v-1.96h-2.1v1.96zm5.4-2.6h2.1V6.48h-2.1v1.96zm-2.7 0h2.1V6.48h-2.1v1.96zM21.6 9.96s-1.02-.78-2.94-.6c-.24-1.5-1.44-2.34-1.5-2.4l-.36-.24-.24.36c-.3.42-.54 1.02-.6 1.62-.06.66.06 1.26.36 1.74-.42.24-1.26.6-2.4.6H2.4c-.18 0-.36.18-.36.36 0 1.62.24 3.24 1.02 4.62.84 1.5 2.1 2.4 3.78 2.4 3.42 0 5.94-1.62 7.14-4.5 1.74.06 2.82-.36 3.42-.78.42-.3.72-.66.96-1.02 1.32.06 2.28-.42 2.28-.42l.18-.12-.06-.18c-.06-.12-.18-.36-.36-.36z"/></svg>
+      <span class="float-icon-label">Docker</span>
+    </div>
+  </div>
+
+  <div class="float-content" id="floatContent">
+    <div class="float-tag reveal-header">My Toolkit</div>
+    <h2 class="float-title reveal-header">
+      Built with the <span>Right Stack</span>
+    </h2>
+    <p class="float-desc reveal-line">
+      A modern, battle-tested toolkit chosen for speed, scalability, and developer experience — from interface to infrastructure, every layer is engineered with intent.
+    </p>
+    <button class="float-cta reveal-line" onclick="document.getElementById('openDrawer').click()">
+      Let's Build Something <span class="arrow">→</span>
+    </button>
+  </div>
+</section>
+
+<footer class="footer-marquee reveal-item">
+  <div class="marquee-track">
+    <span class="marquee-text">Chael Dev <span class="marquee-sep">//</span> Full Stack Developer <span class="marquee-sep">//</span> Creative Director <span class="marquee-sep">//</span> Open to Work <span class="marquee-sep">//</span>&nbsp;&nbsp;&nbsp;</span>
+    <span class="marquee-text">Chael Dev <span class="marquee-sep">//</span> Full Stack Developer <span class="marquee-sep">//</span> Creative Director <span class="marquee-sep">//</span> Open to Work <span class="marquee-sep">//</span>&nbsp;&nbsp;&nbsp;</span>
+    <span class="marquee-text">Chael Dev <span class="marquee-sep">//</span> Full Stack Developer <span class="marquee-sep">//</span> Creative Director <span class="marquee-sep">//</span> Open to Work <span class="marquee-sep">//</span>&nbsp;&nbsp;&nbsp;</span>
+    <span class="marquee-text">Chael Dev <span class="marquee-sep">//</span> Full Stack Developer <span class="marquee-sep">//</span> Creative Director <span class="marquee-sep">//</span> Open to Work <span class="marquee-sep">//</span>&nbsp;&nbsp;&nbsp;</span>
+  </div>
+</footer>
+
+</div>
+
+<div class="drawer-overlay" id="overlay"></div>
+<div class="drawer" id="drawer" role="dialog" aria-label="Navigation menu">
+  <div class="drawer-header">
+    <span class="drawer-title" id="drawerTitle">Menu</span>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <button class="back-btn" id="backBtn" style="display:none;">← Back</button>
+      <button class="drawer-close" id="closeDrawer" aria-label="Close menu">✕</button>
+    </div>
+  </div>
+  <div class="drawer-body">
+    <div id="mainMenu">
+      <div class="menu-item" data-panel="projects"><span class="menu-item-label">Projects</span><span class="menu-item-num">01</span></div>
+      <div class="menu-item" data-panel="blog"><span class="menu-item-label">Blog</span><span class="menu-item-num">02</span></div>
+      <div class="menu-item" data-panel="about"><span class="menu-item-label">About</span><span class="menu-item-num">03</span></div>
+      <div class="menu-item" data-panel="resume"><span class="menu-item-label">Résumé</span><span class="menu-item-num">04</span></div>
+      <div class="menu-item" data-panel="work"><span class="menu-item-label">Let's Work</span><span class="menu-item-num">05</span></div>
+    </div>
+    <div id="subPanel" style="display:none;"></div>
+  </div>
+</div>
+
+</div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.18/dist/lenis.min.js"></script>
+<script>
+// ── Three.js LoadingManager — loading screen ─────────────────
+const HERO_IMG_URL = 'https://cdn.corenexis.com/f/pfVCc7o8Dkn.png';
+
+const loadingScreen = document.getElementById('loading-screen');
+const loadingText   = document.getElementById('loading-text');
+const loadingBar    = document.getElementById('loading-bar');
+const appEl         = document.getElementById('app');
+
+let isReady = false;
+let assetsLoaded = false;
+let scrollAnimationsReady = false;
+const loadStartTime = performance.now();
+const MIN_LOAD_MS = 2200;
+
+function updateLoadingProgress(p) {
+  window.__loadManagerActive = true;
+  if (typeof window.__updateLoadProgress === 'function') {
+    window.__updateLoadProgress(p);
+    return;
+  }
+  const value = Math.min(100, Math.floor(p));
+  loadingText.textContent = `Loading ${value}%`;
+  loadingBar.style.width = `${value}%`;
+}
+
+function revealApp() {
+  if (isReady) return;
+  isReady = true;
+  updateLoadingProgress(100);
+  loadingScreen.remove();
+  document.documentElement.classList.remove('is-loading');
+  appEl.classList.add('is-ready');
+  appEl.setAttribute('aria-hidden', 'false');
+  revealHeroSection();
+}
+
+function revealHeroSection() {
+  const imgWrapEl = document.getElementById('imgWrap');
+  const showImage = imgWrapEl && getComputedStyle(imgWrapEl).display !== 'none';
+
+  gsap.set('.hero-header', { opacity: 0 });
+  gsap.set('.hero-nav-item', { y: -18, opacity: 0 });
+  gsap.set('.hero-content-item', { y: 64, opacity: 0 });
+  gsap.set('.hero-bio-item', { y: 52, opacity: 0 });
+  if (showImage) gsap.set('#imgWrap', { y: 160, opacity: 0 });
+
+  const tl = gsap.timeline({
+    delay: 0.2,
+    onComplete: () => {
+      appEl.classList.add('hero-visible');
+      initScrollAnimations();
+      ScrollTrigger.refresh();
+    }
+  });
+
+  if (showImage) {
+    tl.to('#imgWrap', {
+      y: 0,
+      opacity: 1,
+      duration: 1.3,
+      ease: 'power3.out'
+    });
+  }
+
+  tl.to('.hero-header', {
+    opacity: 1,
+    duration: 0.4,
+    ease: 'power2.out'
+  }, showImage ? '-=0.65' : 0);
+
+  tl.to('.hero-nav-item', {
+    y: 0,
+    opacity: 1,
+    duration: 0.75,
+    stagger: 0.08,
+    ease: 'power3.out'
+  }, showImage ? '-=0.55' : 0.1);
+
+  tl.to('.hero-content-item', {
+    y: 0,
+    opacity: 1,
+    duration: 1,
+    stagger: 0.11,
+    ease: 'power3.out'
+  }, '-=0.4');
+
+  tl.to('.hero-bio-item', {
+    y: 0,
+    opacity: 1,
+    duration: 0.95,
+    ease: 'power3.out'
+  }, '-=0.55');
+}
+
+function tryRevealApp() {
+  if (!assetsLoaded || isReady) return;
+  const elapsed = performance.now() - loadStartTime;
+  const wait = Math.max(0, MIN_LOAD_MS - elapsed);
+  setTimeout(revealApp, wait);
+}
+
+function setAppReady() {
+  if (assetsLoaded) return;
+  assetsLoaded = true;
+  tryRevealApp();
+}
+
+const loadingManager = new THREE.LoadingManager(
+  () => setAppReady(),
+  (_url, loaded, total) => {
+    if (total > 0) updateLoadingProgress((loaded / total) * 100);
+  }
+);
+
+setTimeout(() => { if (!assetsLoaded) setAppReady(); }, 10000);
+
+// ── Custom cursor ──────────────────────────────────────────────
+const cursorRing = document.getElementById('cursor');
+const cursorDot  = document.getElementById('cursor-dot');
+let mx = -200, my = -200;
+let cx = -200, cy = -200;
+
+window.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+
+(function animateCursor(){
+  cx += (mx - cx) * 0.12;
+  cy += (my - cy) * 0.12;
+  cursorRing.style.left = cx + 'px';
+  cursorRing.style.top  = cy + 'px';
+  cursorDot.style.left  = mx + 'px';
+  cursorDot.style.top   = my + 'px';
+  requestAnimationFrame(animateCursor);
+})();
+
+document.querySelectorAll('button,a,.menu-item').forEach(el => {
+  el.addEventListener('mouseenter', () => {
+    cursorRing.style.width  = '40px';
+    cursorRing.style.height = '40px';
+    cursorRing.style.borderColor = '#111';
+  });
+  el.addEventListener('mouseleave', () => {
+    cursorRing.style.width  = '14px';
+    cursorRing.style.height = '14px';
+    cursorRing.style.borderColor = '#CCFF00';
+  });
+});
+
+// ── Ink-reveal on hero image ──────────────────────────────────
+const INK_BRUSH = 72;
+const INK_FADE = 0.018;
+
+const imgWrap     = document.getElementById('imgWrap');
+const grayCanvas  = document.getElementById('canvas-gray');
+const colorCanvas = document.getElementById('canvas-color');
+const gCtx        = grayCanvas.getContext('2d');
+const cCtx        = colorCanvas.getContext('2d');
+const maskCanvas  = document.createElement('canvas');
+const mCtx        = maskCanvas.getContext('2d');
+
+let heroImg = null;
+let imgW = 0, imgH = 0;
+let lastInkX = -1, lastInkY = -1;
+let isOverImage = false;
+
+const textureLoader = new THREE.TextureLoader(loadingManager);
+textureLoader.load(
+  HERO_IMG_URL,
+  texture => {
+    heroImg = texture.image;
+    imgW = heroImg.naturalWidth;
+    imgH = heroImg.naturalHeight;
+    if (imgWrap) setupCanvases();
+  },
+  undefined,
+  () => {
+    const fallback = new Image();
+    fallback.crossOrigin = 'anonymous';
+    fallback.onload = () => {
+      heroImg = fallback;
+      imgW = fallback.naturalWidth;
+      imgH = fallback.naturalHeight;
+      if (imgWrap) setupCanvases();
+    };
+    fallback.src = HERO_IMG_URL;
+  }
+);
+
+function setupCanvases() {
+  if (!imgWrap || !heroImg) return;
+  const wrapH = imgWrap.offsetHeight;
+  const aspect = imgW / imgH;
+  const dispH = wrapH;
+  const dispW = dispH * aspect;
+
+  [grayCanvas, colorCanvas, maskCanvas].forEach(canvas => {
+    canvas.width = dispW;
+    canvas.height = dispH;
+  });
+
+  grayCanvas.style.width  = dispW + 'px';
+  grayCanvas.style.height = dispH + 'px';
+  colorCanvas.style.width = dispW + 'px';
+  colorCanvas.style.height = dispH + 'px';
+
+  gCtx.filter = 'grayscale(1) brightness(1.05) contrast(0.95)';
+  gCtx.drawImage(heroImg, 0, 0, dispW, dispH);
+  gCtx.filter = 'none';
+
+  mCtx.clearRect(0, 0, dispW, dispH);
+  lastInkX = -1;
+  lastInkY = -1;
+}
+
+function stampInk(x, y, radius = INK_BRUSH, alpha = 1) {
+  const r = radius * (0.85 + Math.random() * 0.3);
+  const ox = (Math.random() - 0.5) * radius * 0.18;
+  const oy = (Math.random() - 0.5) * radius * 0.18;
+  const px = x + ox;
+  const py = y + oy;
+
+  const grad = mCtx.createRadialGradient(px, py, 0, px, py, r);
+  grad.addColorStop(0, `rgba(255,255,255,${0.92 * alpha})`);
+  grad.addColorStop(0.28, `rgba(255,255,255,${0.62 * alpha})`);
+  grad.addColorStop(0.62, `rgba(255,255,255,${0.22 * alpha})`);
+  grad.addColorStop(1, 'rgba(255,255,255,0)');
+
+  mCtx.fillStyle = grad;
+  mCtx.beginPath();
+  mCtx.arc(px, py, r, 0, Math.PI * 2);
+  mCtx.fill();
+}
+
+function paintInkStroke(x, y) {
+  if (lastInkX >= 0) {
+    const dist = Math.hypot(x - lastInkX, y - lastInkY);
+    const steps = Math.max(1, Math.ceil(dist / (INK_BRUSH * 0.22)));
+    for (let i = 0; i <= steps; i++) {
+      const t = i / steps;
+      stampInk(lastInkX + (x - lastInkX) * t, lastInkY + (y - lastInkY) * t);
+      if (Math.random() > 0.55) stampInk(lastInkX + (x - lastInkX) * t, lastInkY + (y - lastInkY) * t, INK_BRUSH * 0.42, 0.55);
+    }
+  } else {
+    stampInk(x, y);
+    stampInk(x, y, INK_BRUSH * 0.55, 0.75);
+  }
+  lastInkX = x;
+  lastInkY = y;
+}
+
+function fadeInkMask() {
+  mCtx.globalCompositeOperation = 'destination-out';
+  mCtx.fillStyle = `rgba(0,0,0,${INK_FADE})`;
+  mCtx.fillRect(0, 0, maskCanvas.width, maskCanvas.height);
+  mCtx.globalCompositeOperation = 'source-over';
+}
+
+window.addEventListener('resize', () => {
+  if (imgW && heroImg) setupCanvases();
+});
+
+window.addEventListener('mousemove', e => {
+  const rect = colorCanvas.getBoundingClientRect();
+  if (!rect.width || !rect.height) return;
+
+  const scaleX = colorCanvas.width / rect.width;
+  const scaleY = colorCanvas.height / rect.height;
+  const x = (e.clientX - rect.left) * scaleX;
+  const y = (e.clientY - rect.top) * scaleY;
+
+  const wasOver = isOverImage;
+  isOverImage = x >= 0 && x <= colorCanvas.width && y >= 0 && y <= colorCanvas.height;
+
+  if (!isOverImage) {
+    if (wasOver) {
+      lastInkX = -1;
+      lastInkY = -1;
+    }
+    return;
+  }
+
+  paintInkStroke(x, y);
+});
+
+function drawInkReveal() {
+  requestAnimationFrame(drawInkReveal);
+  if (!imgW || !heroImg) return;
+
+  const w = colorCanvas.width;
+  const h = colorCanvas.height;
+
+  if (!isOverImage) fadeInkMask();
+
+  cCtx.clearRect(0, 0, w, h);
+  cCtx.filter = 'saturate(1.12) contrast(1.06)';
+  cCtx.drawImage(heroImg, 0, 0, w, h);
+  cCtx.filter = 'none';
+  cCtx.globalCompositeOperation = 'destination-in';
+  cCtx.drawImage(maskCanvas, 0, 0);
+  cCtx.globalCompositeOperation = 'source-over';
+}
+drawInkReveal();
+
+// ── Three.js particle background ──────────────────────────────
+(function(){
+  loadingManager.itemStart('particle-scene');
+
+  const canvas   = document.getElementById('bg');
+  const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true});
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.setSize(innerWidth, innerHeight);
+
+  const scene  = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(60, innerWidth/innerHeight, 0.1, 1000);
+  camera.position.z = 50;
+
+  const count = 15000;
+  const pos  = new Float32Array(count*3);
+  const orig = new Float32Array(count*3);
+  const col  = new Float32Array(count*3);
+  const vel  = new Float32Array(count*3);
+
+  for(let i = 0; i < count; i++){
+    const x=(Math.random()-0.5)*200, y=(Math.random()-0.5)*200, z=(Math.random()-0.5)*200;
+    pos[i*3]=orig[i*3]=x; pos[i*3+1]=orig[i*3+1]=y; pos[i*3+2]=orig[i*3+2]=z;
+    col[i*3]=0.75; col[i*3+1]=0.75; col[i*3+2]=0.78;
+  }
+
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  geo.setAttribute('color',    new THREE.BufferAttribute(col, 3));
+  const mat = new THREE.PointsMaterial({size:0.45,vertexColors:true,transparent:true,opacity:0.18,blending:THREE.NormalBlending,depthWrite:false});
+  scene.add(new THREE.Points(geo, mat));
+
+  const lines = [];
+  for(let i=0;i<530;i++){
+    const lGeo = new THREE.BufferGeometry();
+    const x=(Math.random()-0.5)*300,y=(Math.random()-0.5)*300,z=(Math.random()-0.5)*300,len=4+Math.random()*14;
+    lGeo.setAttribute('position',new THREE.BufferAttribute(new Float32Array([x,y,z,x,y,z+len]),3));
+    const lMat=new THREE.LineBasicMaterial({color:0xcccccc,transparent:true,opacity:0.25});
+    const line=new THREE.Line(lGeo,lMat);
+    line.userData.speed=0.05+Math.random()*0.15;
+    scene.add(line); lines.push(line);
+  }
+
+  const mouse3D = new THREE.Vector3();
+  window.addEventListener('mousemove', e => {
+    mouse3D.x = (e.clientX/innerWidth*2-1)*100;
+    mouse3D.y = (-(e.clientY/innerHeight)*2+1)*60;
+  });
+
+  const lime = new THREE.Color('#CCFF00');
+  const base = new THREE.Color(0.75,0.75,0.78);
+
+  function animate(){
+    requestAnimationFrame(animate);
+    const pA=geo.attributes.position.array;
+    const cA=geo.attributes.color.array;
+    for(let i=0;i<count;i++){
+      const ix=i*3,iy=ix+1,iz=ix+2;
+      const dx=pA[ix]-mouse3D.x, dy=pA[iy]-mouse3D.y;
+      const d=Math.sqrt(dx*dx+dy*dy);
+      if(d<20){
+        const f=(1-d/20)*0.04;
+        vel[ix]+=dx*f; vel[iy]+=dy*f;
+        const m=Math.min((1-d/20)*0.4,0.4);
+        cA[ix]=base.r+(lime.r-base.r)*m;
+        cA[iy]=base.g+(lime.g-base.g)*m;
+        cA[iz]=base.b+(lime.b-base.b)*m;
+      } else {
+        cA[ix]+=(base.r-cA[ix])*0.05;
+        cA[iy]+=(base.g-cA[iy])*0.05;
+        cA[iz]+=(base.b-cA[iz])*0.05;
+      }
+      vel[ix]+=(orig[ix]-pA[ix])*0.003;
+      vel[iy]+=(orig[iy]-pA[iy])*0.003;
+      vel[ix]*=0.88; vel[iy]*=0.88;
+      pA[ix]+=vel[ix]; pA[iy]+=vel[iy];
+    }
+    geo.attributes.position.needsUpdate=true;
+    geo.attributes.color.needsUpdate=true;
+    lines.forEach(l=>{
+      const a=l.geometry.attributes.position.array;
+      a[2]+=l.userData.speed; a[5]+=l.userData.speed;
+      if(a[2]>100){a[2]-=200;a[5]-=200;}
+      l.geometry.attributes.position.needsUpdate=true;
+    });
+    renderer.render(scene,camera);
+  }
+  loadingManager.itemEnd('particle-scene');
+  animate();
+
+  window.addEventListener('resize',()=>{
+    camera.aspect=innerWidth/innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth,innerHeight);
+  });
+})();
+
+// ── Scramble headline ──────────────────────────────────────────
+const words   = ['INTENT','PURPOSE','IMPACT'];
+let wordIdx   = 0;
+const wordEl  = document.getElementById('rotatingWord');
+function scramble(target){
+  const chars='ABCDEFGHIJKLMNOPQRSTUVWXYZ'; let iter=0;
+  const iv=setInterval(()=>{
+    wordEl.textContent=target.split('').map((c,i)=>i<iter?c:chars[Math.floor(Math.random()*26)]).join('');
+    if(iter>=target.length)clearInterval(iv);
+    iter+=0.4;
+  },30);
+}
+setInterval(()=>{ wordIdx=(wordIdx+1)%words.length; scramble(words[wordIdx]); },4000);
+
+// ── Drawer ─────────────────────────────────────────────────────
+const drawer     = document.getElementById('drawer');
+const overlay    = document.getElementById('overlay');
+const mainMenu   = document.getElementById('mainMenu');
+const subPanel   = document.getElementById('subPanel');
+const backBtn    = document.getElementById('backBtn');
+const drawerTitle= document.getElementById('drawerTitle');
+
+function openDrawer(){ drawer.classList.add('open'); overlay.classList.add('open'); showMain(); }
+function closeDrawer(){ drawer.classList.remove('open'); overlay.classList.remove('open'); }
+function showMain(){ mainMenu.style.display=''; subPanel.style.display='none'; backBtn.style.display='none'; drawerTitle.textContent='Menu'; }
+
+document.getElementById('openDrawer').onclick = openDrawer;
+document.getElementById('closeDrawer').onclick= closeDrawer;
+overlay.onclick = closeDrawer;
+backBtn.onclick = showMain;
+document.getElementById('viewProjectsBtn').onclick = () => {
+  openDrawer();
+  setTimeout(()=>{ document.querySelector('[data-panel="projects"]').click(); }, 350);
+};
+
+const panels = {
+  projects:`<div class="form-panel"><h3>Projects</h3><p style="color:rgba(0,0,0,0.5);font-size:14px;line-height:1.75;">Selected works across full-stack apps, developer tools, and digital experiences. Currently updating — check back soon.</p></div>`,
+  blog:`<div class="form-panel"><h3>Blog</h3><p style="color:rgba(0,0,0,0.5);font-size:14px;line-height:1.75;">Writing on architecture decisions, DX patterns, and building for the web. Coming soon.</p></div>`,
+  about:`<div class="form-panel"><h3>About</h3><p style="color:rgba(0,0,0,0.5);font-size:14px;line-height:1.75;">Chael is a Full Stack Developer with a focus on fast, secure, and beautifully engineered web experiences.</p><br/><p style="color:rgba(0,0,0,0.5);font-size:14px;line-height:1.75;">He works at the intersection of clean architecture and visual precision — building products that perform as well as they look.</p></div>`,
+  resume:`<div class="form-panel"><h3>Résumé</h3><p style="color:rgba(0,0,0,0.5);font-size:14px;line-height:1.75;">Available on request. Send a message and a PDF will follow within 24 hours.</p><button class="btn-submit" style="margin-top:20px;" onclick="document.querySelector('[data-panel=work]').click()">Request Résumé →</button></div>`,
+  work:`<div class="form-panel"><h3>Let's Work</h3>
+    <div class="field"><label>Name</label><input type="text" placeholder="Your full name"/></div>
+    <div class="field"><label>Email</label><input type="email" placeholder="you@company.com"/></div>
+    <div class="field"><label>Project Type</label><select><option value="">Select a type...</option><option>Web App</option><option>API / Backend</option><option>Brand & Frontend</option><option>Full Stack</option><option>Other</option></select></div>
+    <div class="field"><label>Budget</label><select><option value="">Select range...</option><option>Under $5k</option><option>$5k–$15k</option><option>$15k–$50k</option><option>$50k+</option></select></div>
+    <div class="field"><label>Message</label><textarea placeholder="Tell me about the project..."></textarea></div>
+    <button class="btn-submit">Send Message</button>
+  </div>`
+};
+
+document.querySelectorAll('.menu-item').forEach(item=>{
+  item.onclick=()=>{
+    const p=item.dataset.panel;
+    subPanel.innerHTML=panels[p]||'';
+    mainMenu.style.display='none';
+    subPanel.style.display='';
+    backBtn.style.display='flex';
+    drawerTitle.textContent=item.querySelector('.menu-item-label').textContent;
+  };
+});
+
+document.getElementById('navProjects').onclick = e => {
+  e.preventDefault();
+  openDrawer();
+  setTimeout(()=>{ document.querySelector('[data-panel="projects"]').click(); }, 350);
+};
+document.getElementById('navContact').onclick = e => {
+  e.preventDefault();
+  openDrawer();
+  setTimeout(()=>{ document.querySelector('[data-panel="work"]').click(); }, 350);
+};
+
+// ── Lenis + GSAP ScrollTrigger scroll system ───────────────────
+gsap.registerPlugin(ScrollTrigger);
+
+const headerEl = document.querySelector('header');
+const lenis = new Lenis({
+  lerp: 0.05,
+  duration: 1.5,
+  smoothTouch: true
+});
+
+lenis.on('scroll', ({ scroll, direction }) => {
+  ScrollTrigger.update();
+  headerEl.classList.toggle('nav-scrolled', scroll > 40);
+  if (scroll > 120 && direction === 1) headerEl.classList.add('nav-hidden');
+  else if (direction === -1 || scroll < 80) headerEl.classList.remove('nav-hidden');
+});
+
+gsap.ticker.add(time => lenis.raf(time * 1000));
+gsap.ticker.lagSmoothing(0);
+
+document.querySelectorAll('a[href^="#"]').forEach(link => {
+  const id = link.getAttribute('href');
+  if (!id || id === '#') return;
+  link.addEventListener('click', e => {
+    e.preventDefault();
+    lenis.scrollTo(id, { offset: -80, duration: 1.4 });
+  });
+});
+
+function initScrollAnimations() {
+  if (scrollAnimationsReady) return;
+  scrollAnimationsReady = true;
+
+  const mm = gsap.matchMedia();
+
+  // Section headers — slide up from 50vh on enter
+  gsap.utils.toArray('.reveal-header').forEach(el => {
+    gsap.from(el, {
+      scrollTrigger: {
+        trigger: el,
+        start: 'top 88%',
+        toggleActions: 'play none none reverse'
+      },
+      y: '50vh',
+      opacity: 0,
+      duration: 1.2,
+      ease: 'power3.out'
+    });
+  });
+
+  // Text lines — staggered fade/slide up
+  gsap.utils.toArray('.reveal-line').forEach(el => {
+    gsap.from(el, {
+      scrollTrigger: {
+        trigger: el,
+        start: 'top 90%',
+        toggleActions: 'play none none reverse'
+      },
+      y: 80,
+      opacity: 0,
+      duration: 1,
+      ease: 'power3.out'
+    });
+  });
+
+  // Floating tech icons
+  gsap.from('.float-icon.reveal-item', {
+    scrollTrigger: {
+      trigger: '.float-section',
+      start: 'top 75%',
+      toggleActions: 'play none none reverse'
+    },
+    y: 70,
+    opacity: 0,
+    scale: 0.85,
+    stagger: 0.1,
+    duration: 0.9,
+    ease: 'power3.out'
+  });
+
+  // Footer marquee
+  gsap.from('.footer-marquee', {
+    scrollTrigger: {
+      trigger: '.footer-marquee',
+      start: 'top 95%',
+      toggleActions: 'play none none reverse'
+    },
+    y: 40,
+    opacity: 0,
+    duration: 0.8,
+    ease: 'power2.out'
+  });
+
+  mm.add('(min-width: 769px)', () => {
+    // Scrub — toolkit section scales while scrolling
+    gsap.to('.float-content', {
+      scrollTrigger: {
+        trigger: '.float-section',
+        start: 'top top',
+        end: 'bottom top',
+        scrub: 0.6
+      },
+      scale: 0.92,
+      ease: 'none'
+    });
+
+    // Scrub — horizontal parallax on icon field
+    gsap.to('.float-icons', {
+      scrollTrigger: {
+        trigger: '.float-section',
+        start: 'top bottom',
+        end: 'bottom top',
+        scrub: 1
+      },
+      xPercent: -6,
+      ease: 'none'
+    });
+  });
+}
+
+window.addEventListener('resize', () => ScrollTrigger.refresh());
+</script>
+</body>
+</html>

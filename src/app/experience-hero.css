@@ -1,0 +1,430 @@
+/* Dark-mode experience hero (landing) — plain CSS, no Tailwind required */
+
+.xp-hero {
+  position: sticky;
+  top: 0;
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: #020202;
+  color: #fff;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.xp-hero-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.xp-hero-canvas canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.xp-hero-inner {
+  position: relative;
+  z-index: 10;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: clamp(16px, 2vw, 32px);
+  width: 100%;
+  padding: clamp(88px, 12vh, 120px) clamp(20px, 4vw, 64px) clamp(24px, 4vh, 48px);
+  box-sizing: border-box;
+}
+
+.xp-hero-left {
+  flex: 1 1 30%;
+  min-width: 0;
+  max-width: 32rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-self: stretch;
+  padding: 8px 0 16px;
+  z-index: 20;
+  pointer-events: none;
+}
+
+.xp-hero-left .xp-hero-cta {
+  pointer-events: auto;
+}
+
+.xp-hero-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.xp-hero-live {
+  position: relative;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #fff;
+  flex-shrink: 0;
+}
+
+.xp-hero-live-ping {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: #fff;
+  opacity: 0.3;
+  animation: xp-ping 1.6s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+@keyframes xp-ping {
+  75%,
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+
+.xp-hero-brand-name {
+  font-family: var(--font-ibm-plex-mono), "IBM Plex Mono", monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #fff;
+}
+
+.xp-hero-copy {
+  max-width: 100%;
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+/* Centered large ink-reveal portrait (same HeroInkReveal as light mode) */
+.xp-hero-media {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  z-index: 5;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: min(52vw, 620px);
+  height: min(92vh, 920px);
+  max-height: 92dvh;
+  pointer-events: none;
+}
+
+.xp-hero .img-wrap,
+.xp-hero #imgWrap {
+  position: relative !important;
+  inset: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  left: auto !important;
+  margin: 0 auto !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-height: none !important;
+  opacity: 1 !important;
+  will-change: auto;
+  z-index: 5;
+  display: block;
+}
+
+.xp-hero .hero-portrait-fallback,
+.xp-hero #canvas-gray,
+.xp-hero #canvas-color {
+  left: 50% !important;
+  right: auto !important;
+  bottom: 0 !important;
+  transform: translateX(-50%) !important;
+  height: 100% !important;
+  width: auto !important;
+  max-width: none;
+}
+
+.xp-hero-title {
+  margin: 0;
+  font-family: var(--font-montserrat), Montserrat, sans-serif;
+  font-weight: 900;
+  font-size: clamp(2.4rem, 6.5vw, 7.5rem);
+  line-height: 0.87;
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+  color: #fff;
+  font-style: normal;
+}
+
+.xp-hero-title-outline {
+  color: transparent;
+  -webkit-text-stroke: 2px #fff;
+  text-stroke: 2px #fff;
+  -webkit-text-fill-color: transparent;
+}
+
+.xp-hero-sub {
+  margin: 28px 0 0;
+  max-width: 28rem;
+  font-family: var(--font-ibm-plex-mono), "IBM Plex Mono", monospace;
+  font-size: 11px;
+  line-height: 1.7;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.xp-hero-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 22px;
+  width: fit-content;
+  margin-top: 28px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+}
+
+.xp-hero-cta-orb {
+  width: 56px;
+  height: 56px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.45s ease, color 0.45s ease, border-color 0.45s ease;
+}
+
+.xp-hero-cta:hover .xp-hero-cta-orb {
+  background: #fff;
+  color: #000;
+  border-color: #fff;
+}
+
+.xp-hero-cta-label {
+  font-family: var(--font-ibm-plex-mono), "IBM Plex Mono", monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.xp-hero-deck {
+  flex: 0 0 auto;
+  width: min(100%, 20rem);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  justify-content: center;
+  z-index: 20;
+  margin-left: auto;
+}
+
+.xp-glass-panel {
+  padding: 22px 24px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+}
+
+.xp-cell-meta {
+  display: block;
+  margin-bottom: 12px;
+  font-family: var(--font-ibm-plex-mono), "IBM Plex Mono", monospace;
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.28);
+}
+
+.xp-cell-progress {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 6px;
+}
+
+.xp-cell-value {
+  margin: 0;
+  font-family: var(--font-montserrat), Montserrat, sans-serif;
+  font-size: clamp(1.5rem, 2.4vw, 1.85rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: #fff;
+}
+
+.xp-cell-bar {
+  height: 2px;
+  width: 80px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.xp-cell-bar-fill {
+  height: 100%;
+  width: 60%;
+  background: #fff;
+  animation: xp-loading-slide 1.8s ease-in-out infinite;
+}
+
+@keyframes xp-loading-slide {
+  0% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(180%);
+  }
+}
+
+.xp-cell-data {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.xp-cell-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-family: var(--font-ibm-plex-mono), "IBM Plex Mono", monospace;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.55);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.xp-cell-row + .xp-cell-row {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-top: 12px;
+}
+
+.xp-cell-text {
+  margin: 10px 0 0;
+  font-family: var(--font-space-grotesk), "Space Grotesk", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.xp-cell-text em {
+  font-style: italic;
+  color: #fff;
+}
+
+#app[data-theme="dark"] canvas#bg {
+  opacity: 0.15;
+}
+
+#app[data-theme="dark"] .v-line {
+  opacity: 0.35;
+}
+
+#app[data-theme="dark"] .hero-header .logo-name,
+#app[data-theme="dark"] .hero-header .nav-link {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+#app[data-theme="dark"] .hero-header .nav-link:hover,
+#app[data-theme="dark"] .hero-header .logo-name {
+  color: #fff;
+}
+
+#app[data-theme="dark"] .hero-header.nav-scrolled {
+  background: rgba(2, 2, 2, 0.82);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+#app[data-theme="dark"] .btn-theme {
+  border-color: rgba(255, 255, 255, 0.25);
+  color: #fff;
+}
+
+#app[data-theme="dark"] .nav-burger {
+  background: rgba(10, 10, 10, 0.88);
+  border-color: rgba(255, 255, 255, 0.18);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45);
+}
+
+#app[data-theme="dark"] .nav-burger-lines span {
+  background: #f4f4f4;
+}
+
+@media (max-width: 1100px) {
+  .xp-hero-title {
+    font-size: clamp(2.1rem, 5.5vw, 5rem);
+  }
+
+  .xp-hero-media {
+    width: min(48vw, 480px);
+    height: min(88vh, 780px);
+  }
+}
+
+@media (max-width: 900px) {
+  .xp-hero-inner {
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 20px;
+    padding-top: 96px;
+    padding-bottom: 36px;
+    text-align: left;
+  }
+
+  .xp-hero-left {
+    align-self: stretch;
+    max-width: none;
+    width: 100%;
+    order: 1;
+  }
+
+  .xp-hero-copy {
+    margin: 20px 0;
+  }
+
+  .xp-hero-title {
+    font-size: clamp(2.2rem, 11vw, 3.75rem);
+  }
+
+  .xp-hero-title-outline {
+    -webkit-text-stroke: 1.5px #fff;
+  }
+
+  .xp-hero-media {
+    position: relative;
+    left: auto;
+    bottom: auto;
+    transform: none;
+    order: 0;
+    width: min(78vw, 340px);
+    height: min(52vh, 420px);
+    margin: 0 auto;
+  }
+
+  .xp-hero-deck {
+    width: 100%;
+    margin-left: 0;
+    order: 2;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .xp-hero-live-ping,
+  .xp-cell-bar-fill {
+    animation: none;
+  }
+}

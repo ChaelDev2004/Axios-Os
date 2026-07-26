@@ -1,0 +1,20 @@
+node_modules
+.next
+out
+.env*.local
+*.tsbuildinfo
+next-env.d.ts
+
+# Capacitor / Android
+android/.gradle
+android/app/build
+android/build
+android/local.properties
+android/captures
+*.apk
+*.aab
+*.keystore
+.idea
+.DS_Store
+ios/App/Pods
+ios/App/public
