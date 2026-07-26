@@ -124,7 +124,6 @@ function PortfolioApp() {
         aria-hidden={!isReady}
       >
         <ParticleBackground />
-        <div className="v-line" />
         <Header onScrollTo={scrollTo} />
         <Hero />
         <div className="scroll-panel" id="scrollPanel">

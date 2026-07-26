@@ -329,10 +329,6 @@
   opacity: 0.15;
 }
 
-#app[data-theme="dark"] .v-line {
-  opacity: 0.35;
-}
-
 #app[data-theme="dark"] .hero-header .logo-name,
 #app[data-theme="dark"] .hero-header .nav-link {
   color: rgba(255, 255, 255, 0.72);

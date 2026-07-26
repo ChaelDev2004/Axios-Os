@@ -380,11 +380,6 @@ html:has(#app[data-theme="dark"]) #cursor-dot {
   color: var(--lp-ink-muted);
 }
 
-/* V-line */
-#app .v-line {
-  background: var(--lp-border);
-}
-
 @media (max-width: 900px) {
   #app .btn-theme {
     width: 34px;
