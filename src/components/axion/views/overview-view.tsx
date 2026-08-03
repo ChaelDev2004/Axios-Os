@@ -1,15 +1,18 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { CalendarDays, Flame, Target, TrendingUp, Zap } from "lucide-react";
+import { CalendarDays, Flame, Plus, StickyNote, Target, TrendingUp, Zap } from "lucide-react";
 
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import {
+  useCreateNote,
   useDashboardStats,
   useLandingPageVisits,
+  useNotes,
   usePomodoroSessions,
   useTasks,
 } from "@/features/dashboard/hooks/use-dashboard-queries";
+import { useNotesFocusStore } from "@/features/dashboard/stores/notes-focus.store";
 import {
   groupFocusSecondsByDay,
   groupLandingVisitsByDay,
@@ -24,7 +27,7 @@ import {
   Line,
   sparklineOptions,
 } from "@/lib/chartjs";
-import { cn } from "@/lib/utils";
+import { useDashboardNav } from "@/components/dashboard/dashboard-context";
 import { FocusHub } from "@/components/axion/views/focus-view";
 import { EmptyState } from "@/components/axion/views/empty-state";
 import {
@@ -575,54 +578,400 @@ function OverviewGoals() {
   }, [tasks, day]);
 
   return (
-    <div className="axion-grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-      <div className="axion-card">
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="axion-kicker">Daily Goals</div>
-            <h3 className="axion-subtitle">Incomplete tasks</h3>
-          </div>
-          <Target className="h-4 w-4 text-indigo-300" />
+    <div className="axion-card" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 12,
+        }}
+      >
+        <div>
+          <div className="axion-kicker">Daily Goals</div>
+          <h3 className="axion-subtitle" style={{ marginTop: 4 }}>
+            Incomplete tasks
+          </h3>
         </div>
-        <div className="mt-4 space-y-2">
-          {goals.length === 0 ? (
-            <EmptyState description="No incomplete tasks right now." />
-          ) : (
-            goals.map((g) => (
-              <div
-                key={g.id}
-                className="flex items-center gap-3 rounded-xl border border-white/6 bg-white/[0.03] px-3 py-2.5 text-sm"
+        <Target style={{ width: 16, height: 16, color: "#a5b4fc" }} />
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        {goals.length === 0 ? (
+          <EmptyState description="No incomplete tasks right now." />
+        ) : (
+          goals.map((g) => (
+            <div
+              key={g.id}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 12,
+                borderRadius: 12,
+                border: "1px solid color-mix(in srgb, var(--foreground) 6%, transparent)",
+                background: "color-mix(in srgb, var(--foreground) 3%, transparent)",
+                padding: "10px 12px",
+                fontSize: 14,
+              }}
+            >
+              <span
+                style={{
+                  display: "flex",
+                  width: 20,
+                  height: 20,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  borderRadius: 6,
+                  border: "1px solid var(--border)",
+                  fontSize: 10,
+                  color: "transparent",
+                  flexShrink: 0,
+                }}
               >
-                <span className="flex h-5 w-5 items-center justify-center rounded-md border border-white/10 text-[10px] text-transparent">
-                  ✓
+                ✓
+              </span>
+              <span
+                style={{
+                  minWidth: 0,
+                  flex: 1,
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {g.title}
+              </span>
+              {g.due_date ? (
+                <span
+                  style={{
+                    flexShrink: 0,
+                    fontSize: 10,
+                    color: "var(--muted-foreground)",
+                  }}
+                >
+                  {g.due_date.slice(0, 10)}
                 </span>
-                <span className="min-w-0 flex-1 truncate">{g.title}</span>
-                {g.due_date ? (
-                  <span className="shrink-0 text-[10px] text-slate-500">
-                    {g.due_date.slice(0, 10)}
+              ) : null}
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
+
+function OverviewNotes() {
+  const { setActive } = useDashboardNav();
+  const setNotesFocus = useNotesFocusStore((s) => s.setFocus);
+  const { data: notes = [], isLoading } = useNotes();
+  const createNote = useCreateNote({
+    onSuccess: (note) => {
+      setNotesFocus({ noteId: note.id });
+      setActive("notes");
+    },
+  });
+
+  const preview = useMemo(() => {
+    return [...notes]
+      .sort((a, b) => {
+        if (a.favorite !== b.favorite) return a.favorite ? -1 : 1;
+        if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
+        if (a.remind_enabled !== b.remind_enabled) return a.remind_enabled ? -1 : 1;
+        return b.updated_at.localeCompare(a.updated_at);
+      })
+      .slice(0, 6);
+  }, [notes]);
+
+  const favoriteCount = notes.filter((n) => n.favorite).length;
+  const reminderCount = notes.filter((n) => n.remind_enabled).length;
+
+  const openNotes = () => {
+    setNotesFocus({});
+    setActive("notes");
+  };
+
+  const openNote = (noteId: string) => {
+    setNotesFocus({ noteId });
+    setActive("notes");
+  };
+
+  const snippet = (body: string | null) => {
+    const text = (body ?? "").trim().replace(/\s+/g, " ");
+    if (!text) return "No additional text";
+    return text.length > 72 ? `${text.slice(0, 69)}…` : text;
+  };
+
+  return (
+    <div className="axion-card" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      <div
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          alignItems: "flex-start",
+          justifyContent: "space-between",
+          gap: 12,
+        }}
+      >
+        <div>
+          <div className="axion-kicker">Notes</div>
+          <h3 className="axion-subtitle" style={{ marginTop: 4 }}>
+            Recent &amp; favorites
+          </h3>
+        </div>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+          <button
+            type="button"
+            onClick={openNotes}
+            style={{
+              display: "inline-flex",
+              height: 32,
+              alignItems: "center",
+              gap: 6,
+              borderRadius: 12,
+              border: "1px solid var(--border)",
+              background: "color-mix(in srgb, var(--foreground) 5%, transparent)",
+              padding: "0 10px",
+              fontSize: 11,
+              fontWeight: 600,
+              color: "var(--foreground)",
+              cursor: "pointer",
+            }}
+          >
+            <StickyNote style={{ width: 14, height: 14 }} />
+            Open
+          </button>
+          <button
+            type="button"
+            disabled={createNote.isPending}
+            onClick={() => {
+              createNote.mutate({
+                title: "Untitled note",
+                body: "",
+              });
+            }}
+            style={{
+              display: "inline-flex",
+              height: 32,
+              alignItems: "center",
+              gap: 6,
+              borderRadius: 12,
+              border: "none",
+              background: "#6366f1",
+              padding: "0 10px",
+              fontSize: 11,
+              fontWeight: 600,
+              color: "#fff",
+              cursor: createNote.isPending ? "not-allowed" : "pointer",
+              opacity: createNote.isPending ? 0.6 : 1,
+            }}
+          >
+            <Plus style={{ width: 14, height: 14 }} />
+            New
+          </button>
+        </div>
+      </div>
+
+      <div
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: 8,
+          fontSize: 11,
+          color: "var(--muted-foreground)",
+        }}
+      >
+        <span
+          style={{
+            borderRadius: 999,
+            border: "1px solid var(--border)",
+            background: "color-mix(in srgb, var(--foreground) 3%, transparent)",
+            padding: "2px 8px",
+          }}
+        >
+          {notes.length} total
+        </span>
+        {favoriteCount > 0 ? (
+          <span
+            style={{
+              borderRadius: 999,
+              border: "1px solid rgba(244,114,182,0.25)",
+              background: "rgba(236,72,153,0.1)",
+              padding: "2px 8px",
+              color: "#fbcfe8",
+            }}
+          >
+            {favoriteCount} favorite
+          </span>
+        ) : null}
+        {reminderCount > 0 ? (
+          <span
+            style={{
+              borderRadius: 999,
+              border: "1px solid rgba(251,191,36,0.25)",
+              background: "rgba(245,158,11,0.1)",
+              padding: "2px 8px",
+              color: "#fef3c7",
+            }}
+          >
+            {reminderCount} reminder
+          </span>
+        ) : null}
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        {isLoading ? (
+          <EmptyState title="Loading notes…" />
+        ) : preview.length === 0 ? (
+          <EmptyState description="Create a note to pin ideas on your overview." />
+        ) : (
+          preview.map((note) => (
+            <button
+              key={note.id}
+              type="button"
+              onClick={() => openNote(note.id)}
+              style={{
+                display: "flex",
+                width: "100%",
+                flexDirection: "column",
+                gap: 4,
+                borderRadius: 12,
+                border: "1px solid color-mix(in srgb, var(--foreground) 6%, transparent)",
+                background: "color-mix(in srgb, var(--foreground) 3%, transparent)",
+                padding: "10px 12px",
+                textAlign: "left",
+                cursor: "pointer",
+                color: "inherit",
+                fontSize: 14,
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  minWidth: 0,
+                  alignItems: "center",
+                  gap: 8,
+                }}
+              >
+                <span
+                  style={{
+                    minWidth: 0,
+                    flex: 1,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                    fontWeight: 600,
+                    color: "var(--foreground)",
+                  }}
+                >
+                  {note.favorite ? "♥ " : ""}
+                  {note.pinned ? "📌 " : ""}
+                  {note.remind_enabled ? "🔔 " : ""}
+                  {note.title}
+                </span>
+                {note.tag ? (
+                  <span
+                    style={{
+                      flexShrink: 0,
+                      borderRadius: 999,
+                      border: "1px solid var(--border)",
+                      padding: "2px 6px",
+                      fontSize: 10,
+                      color: "var(--muted-foreground)",
+                    }}
+                  >
+                    {note.tag}
                   </span>
                 ) : null}
               </div>
-            ))
-          )}
-        </div>
+              <span
+                style={{
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                  fontSize: 12,
+                  color: "var(--muted-foreground)",
+                }}
+              >
+                {snippet(note.body)}
+              </span>
+            </button>
+          ))
+        )}
       </div>
-      <div className="axion-card">
+    </div>
+  );
+}
+
+function OverviewPulse() {
+  const { data: notes = [] } = useNotes();
+  const { data: tasks = [] } = useTasks();
+  const day = todayKey();
+  const dueToday = tasks.filter(
+    (t) => !t.completed && t.due_date && isSameDay(t.due_date, day)
+  ).length;
+  const reminders = notes.filter((n) => n.remind_enabled).length;
+
+  return (
+    <div className="axion-card" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      <div>
         <div className="axion-kicker">Pulse</div>
-        <h3 className="axion-subtitle">Live stats</h3>
-        <div className="axion-body mt-5 space-y-3 text-[0.975rem]">
-          <p>
-            Open goals shown above are pulled from your incomplete tasks
-            {goals.some((g) => g.due_date && isSameDay(g.due_date, day))
-              ? " due today"
-              : ""}
-            .
-          </p>
-          <p className={cn("text-slate-400")}>
-            Charts and KPIs update from Supabase in real time.
-          </p>
-        </div>
+        <h3 className="axion-subtitle" style={{ marginTop: 4 }}>
+          Live stats
+        </h3>
       </div>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 12,
+          fontSize: "0.975rem",
+          lineHeight: 1.55,
+          color: "var(--foreground)",
+        }}
+      >
+        <p style={{ margin: 0 }}>
+          {dueToday > 0
+            ? `${dueToday} task${dueToday === 1 ? "" : "s"} due today.`
+            : "No tasks due today."}{" "}
+          {notes.length > 0
+            ? `${notes.length} note${notes.length === 1 ? "" : "s"} in your workspace.`
+            : "Notes will appear here once you create one."}
+        </p>
+        <p style={{ margin: 0, color: "var(--muted-foreground)" }}>
+          {reminders > 0
+            ? `${reminders} note reminder${reminders === 1 ? "" : "s"} armed — keep Axion open to fire notifications.`
+            : "Charts, notes, and KPIs update from Supabase in real time."}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function OverviewBottomRow() {
+  const [isNarrow, setIsNarrow] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 1023px)");
+    const sync = () => setIsNarrow(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
+
+  return (
+    <div
+      style={{
+        display: "grid",
+        gap: 24,
+        gridTemplateColumns: isNarrow
+          ? "1fr"
+          : "minmax(0, 1.15fr) minmax(0, 1.15fr) minmax(0, 0.85fr)",
+        width: "100%",
+        minWidth: 0,
+      }}
+    >
+      <OverviewGoals />
+      <OverviewNotes />
+      <OverviewPulse />
     </div>
   );
 }
@@ -645,7 +994,7 @@ export function OverviewView() {
       <KpiGrid />
       <OverviewCharts />
       <FocusHub compact />
-      <OverviewGoals />
+      <OverviewBottomRow />
     </>
   );
 }

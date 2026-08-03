@@ -496,6 +496,7 @@ type ListFilter = "all" | "favorites" | "pinned";
 export function NotesView() {
   const focusTaskId = useNotesFocusStore((s) => s.taskId);
   const focusDueDate = useNotesFocusStore((s) => s.dueDate);
+  const focusNoteId = useNotesFocusStore((s) => s.noteId);
   const createDraftFlag = useNotesFocusStore((s) => s.createDraft);
   const clearFocus = useNotesFocusStore((s) => s.clearFocus);
 
@@ -589,6 +590,13 @@ export function NotesView() {
     });
     clearFocus();
   }, [createDraftFlag, focusTaskId, focusDueDate, clearFocus]);
+
+  useEffect(() => {
+    if (!focusNoteId) return;
+    setSelectedId(focusNoteId);
+    setEditing(false);
+    clearFocus();
+  }, [focusNoteId, clearFocus]);
 
   const startCreate = () => {
     setSelectedId(null);
