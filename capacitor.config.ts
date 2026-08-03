@@ -3,7 +3,10 @@ import type { CapacitorConfig } from "@capacitor/cli";
 /**
  * Native shell for AXIOS OS login + dashboard.
  *
- * Physical phone (same Wi‑Fi as PC) — recommended:
+ * Production (default):
+ *   https://axios-os-one.vercel.app
+ *
+ * Local LAN Next server:
  *   $env:CAPACITOR_SERVER_URL="http://YOUR_LAN_IP:3000"
  *   npm run cap:sync
  *
@@ -14,10 +17,12 @@ import type { CapacitorConfig } from "@capacitor/cli";
  *   $env:CAPACITOR_SERVER_URL="http://10.0.2.2:3000"
  */
 const serverUrl = (
-  process.env.CAPACITOR_SERVER_URL ?? "http://192.168.254.135:3000"
+  process.env.CAPACITOR_SERVER_URL ?? "https://axios-os-one.vercel.app"
 )
   .trim()
   .replace(/\/$/, "");
+
+const isHttps = serverUrl.startsWith("https://");
 
 const config: CapacitorConfig = {
   appId: "com.axiosos.app",
@@ -25,12 +30,12 @@ const config: CapacitorConfig = {
   webDir: "www",
   backgroundColor: "#09090b",
   android: {
-    allowMixedContent: true,
+    allowMixedContent: !isHttps,
     backgroundColor: "#09090b",
   },
   server: {
-    androidScheme: "http",
-    cleartext: true,
+    androidScheme: isHttps ? "https" : "http",
+    cleartext: !isHttps,
     // Login first — landing WebGL often blacks out Android WebViews.
     url: `${serverUrl}/auth/login`,
   },

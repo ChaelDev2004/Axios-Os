@@ -18,3 +18,5 @@ android/captures
 .DS_Store
 ios/App/Pods
 ios/App/public
+.vercel
+.env*

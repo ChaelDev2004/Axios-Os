@@ -53,20 +53,20 @@
     <div>
       <h1>AXIOS OS</h1>
       <p>
-        Cannot reach the Next.js server. Start it on your PC, then reopen the
+        Cannot reach AXIOS OS. Check your internet connection, then reopen the
         app.
       </p>
       <p>
-        Emulator: run <code>npm run mobile:emu</code><br />
-        Phone: use your LAN IP in <code>CAPACITOR_SERVER_URL</code>
+        Production:
+        <code>https://axios-os-one.vercel.app</code>
       </p>
-      <a id="retry" href="http://127.0.0.1:3000/auth/login">Open login</a>
+      <a id="retry" href="https://axios-os-one.vercel.app/auth/login"
+        >Open login</a
+      >
     </div>
     <script>
-      // Prefer configured host when available.
-      var target = "http://192.168.254.135:3000/auth/login";
+      var target = "https://axios-os-one.vercel.app/auth/login";
       document.getElementById("retry").href = target;
-      // Auto-retry once after a short delay.
       setTimeout(function () {
         window.location.replace(target);
       }, 1200);

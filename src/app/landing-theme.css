@@ -371,6 +371,9 @@ html:has(#app[data-theme="dark"]) #cursor-dot {
 #app .drawer-login {
   border-top-color: var(--lp-border);
 }
+#app .drawer-login-hint {
+  color: var(--lp-ink-muted);
+}
 #app .drawer-close {
   border-color: var(--lp-border);
   color: var(--lp-ink);

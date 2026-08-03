@@ -119,9 +119,12 @@ export function RegisterForm() {
         {loading ? "Creating account…" : "Create account"}
       </Button>
 
-      <p className="text-center text-sm text-muted-foreground">
+      <p className="text-center text-sm text-zinc-600 dark:text-zinc-400">
         Already have an account?{" "}
-        <Link href="/auth/login" className="text-foreground underline-offset-4 hover:underline">
+        <Link
+          href="/auth/login"
+          className="font-medium text-zinc-900 underline-offset-4 hover:underline dark:text-zinc-100"
+        >
           Sign in
         </Link>
       </p>

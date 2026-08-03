@@ -559,7 +559,7 @@ const AnimatedForm = memo(function AnimatedForm({
             <section className="mt-4 text-center">
               <button
                 type="button"
-                className="text-sm text-blue-500 outline-hidden"
+                className="text-sm font-medium text-zinc-700 outline-hidden transition hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-white"
                 onClick={goTo}
               >
                 {textVariantButton}
