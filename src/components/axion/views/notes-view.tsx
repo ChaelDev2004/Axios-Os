@@ -23,6 +23,7 @@ import {
   useUpdateNote,
 } from "@/features/dashboard/hooks/use-dashboard-queries";
 import { useNotesFocusStore } from "@/features/dashboard/stores/notes-focus.store";
+import { confirmDeleteNote, noteDeletedAlert } from "@/features/dashboard/lib/confirm-delete-note";
 import { EmptyState } from "@/components/axion/views/empty-state";
 import type { Note } from "@/features/auth/types/database.types";
 
@@ -336,6 +337,20 @@ const styles = {
     color: "#c7d2fe",
     cursor: "pointer",
   } as CSSProperties,
+  btnDanger: {
+    display: "inline-flex",
+    height: 36,
+    alignItems: "center",
+    gap: 8,
+    borderRadius: 12,
+    border: "1px solid rgba(248,113,113,0.35)",
+    background: "rgba(239,68,68,0.12)",
+    padding: "0 12px",
+    fontSize: 13,
+    fontWeight: 600,
+    color: "#fecaca",
+    cursor: "pointer",
+  } as CSSProperties,
   body: {
     flex: 1,
     overflowY: "auto",
@@ -537,8 +552,8 @@ export function NotesView() {
     onError: (e) => toast.error(e.message),
   });
   const deleteNote = useDeleteNote({
-    onSuccess: () => {
-      toast.success("Note deleted");
+    onSuccess: async () => {
+      await noteDeletedAlert();
       setSelectedId(null);
       setEditing(false);
       setDraft(EMPTY_DRAFT);
@@ -837,9 +852,10 @@ export function NotesView() {
                               style={styles.menuItem(true)}
                               onClick={() => {
                                 setMenuId(null);
-                                if (window.confirm("Delete this note?")) {
-                                  deleteNote.mutate(note.id);
-                                }
+                                void (async () => {
+                                  const ok = await confirmDeleteNote(note.title);
+                                  if (ok) deleteNote.mutate(note.id);
+                                })();
                               }}
                             >
                               <Trash2 style={icon(14)} /> Delete
@@ -890,6 +906,19 @@ export function NotesView() {
                     >
                       <Pencil style={icon(14)} />
                       Edit Note
+                    </button>
+                    <button
+                      type="button"
+                      style={styles.btnDanger}
+                      onClick={() => {
+                        void (async () => {
+                          const ok = await confirmDeleteNote(selected.title);
+                          if (ok) deleteNote.mutate(selected.id);
+                        })();
+                      }}
+                    >
+                      <Trash2 style={icon(14)} />
+                      Delete
                     </button>
                   </>
                 ) : null}
