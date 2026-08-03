@@ -199,6 +199,72 @@ export interface Database {
           },
         ];
       };
+      notes: {
+        Row: {
+          id: string;
+          user_id: string;
+          task_id: string | null;
+          title: string;
+          body: string | null;
+          tag: string | null;
+          pinned: boolean;
+          favorite: boolean;
+          due_date: string | null;
+          remind_enabled: boolean;
+          remind_weekday: number | null;
+          remind_time: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          task_id?: string | null;
+          title: string;
+          body?: string | null;
+          tag?: string | null;
+          pinned?: boolean;
+          favorite?: boolean;
+          due_date?: string | null;
+          remind_enabled?: boolean;
+          remind_weekday?: number | null;
+          remind_time?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          task_id?: string | null;
+          title?: string;
+          body?: string | null;
+          tag?: string | null;
+          pinned?: boolean;
+          favorite?: boolean;
+          due_date?: string | null;
+          remind_enabled?: boolean;
+          remind_weekday?: number | null;
+          remind_time?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "notes_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "notes_task_id_fkey";
+            columns: ["task_id"];
+            isOneToOne: false;
+            referencedRelation: "tasks";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       pomodoro_sessions: {
         Row: {
           id: string;
@@ -731,6 +797,7 @@ export interface Database {
 export type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 export type Project = Database["public"]["Tables"]["projects"]["Row"];
 export type Task = Database["public"]["Tables"]["tasks"]["Row"];
+export type Note = Database["public"]["Tables"]["notes"]["Row"];
 export type PomodoroSession = Database["public"]["Tables"]["pomodoro_sessions"]["Row"];
 export type Transaction = Database["public"]["Tables"]["transactions"]["Row"];
 export type PortfolioProject = Database["public"]["Tables"]["portfolio_projects"]["Row"];

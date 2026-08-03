@@ -9,6 +9,7 @@ import {
   Sparkles,
   Wallet,
   ListTodo,
+  StickyNote,
   Info,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -45,10 +46,13 @@ function formatRelativeTime(iso: string): string {
 function notificationIcon(type: string | null) {
   switch (type) {
     case "finance_reminder":
+    case "finance_daily":
       return <Wallet className="h-3.5 w-3.5" />;
     case "task_reminder":
     case "task":
       return <ListTodo className="h-3.5 w-3.5" />;
+    case "note_reminder":
+      return <StickyNote className="h-3.5 w-3.5" />;
     case "ai":
       return <Sparkles className="h-3.5 w-3.5" />;
     default:

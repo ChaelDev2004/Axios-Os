@@ -30,6 +30,7 @@ import { CalendarView } from "@/components/axion/views/calendar-view";
 import { AnalyticsView } from "@/components/axion/views/analytics-view";
 import { AiView } from "@/components/axion/views/ai-view";
 import { NotificationsView } from "@/components/axion/views/notifications-view";
+import { NotesView } from "@/components/axion/views/notes-view";
 import { DashboardSkeleton } from "@/components/axion/views/shared";
 
 export function AxionDashboard() {
@@ -97,6 +98,7 @@ export function AxionDashboard() {
         {active === "portfolio" && <PortfolioView />}
         {active === "projects" && <ProjectsView />}
         {active === "tasks" && <TasksView />}
+        {active === "notes" && <NotesView />}
         {active === "pomodoro" && <FocusView />}
         {active === "cashflow" && <FinanceView />}
         {active === "calendar" && <CalendarView />}

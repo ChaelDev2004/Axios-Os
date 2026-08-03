@@ -21,6 +21,7 @@ import {
   Search,
   Settings,
   Sparkles,
+  StickyNote,
   Sun,
   Timer,
   Wallet,
@@ -41,6 +42,7 @@ import { CommandPalette } from "@/components/axion/command-palette";
 import { DailyReminderAlert } from "@/components/axion/daily-reminder-alert";
 import { FinancialReminder } from "@/components/axion/financial-reminder";
 import { IncompleteTaskReminder } from "@/components/axion/incomplete-task-reminder";
+import { NoteReminder } from "@/components/axion/note-reminder";
 import {
   SidebarAvatar,
   SidebarProfileEditor,
@@ -91,6 +93,7 @@ const NAV_GROUPS: Array<{
       { id: "portfolio", label: "Portfolio", icon: <BriefcaseBusiness className="h-4 w-4" /> },
       { id: "projects", label: "Projects", icon: <Workflow className="h-4 w-4" /> },
       { id: "tasks", label: "Tasks", icon: <ListTodo className="h-4 w-4" /> },
+      { id: "notes", label: "Notes", icon: <StickyNote className="h-4 w-4" /> },
     ],
   },
   {
@@ -926,6 +929,7 @@ export function AxionShell({ children }: { children: ReactNode }) {
         <DailyReminderAlert />
         <IncompleteTaskReminder />
         <FinancialReminder />
+        <NoteReminder />
       </div>
     </DashboardNavProvider>
   );

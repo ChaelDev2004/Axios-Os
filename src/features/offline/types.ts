@@ -63,6 +63,24 @@ export type OfflinePomodoroSession = {
   _offline: OfflineMeta;
 };
 
+export type OfflineNote = {
+  id: string;
+  user_id: string;
+  task_id: string | null;
+  title: string;
+  body: string | null;
+  tag: string | null;
+  pinned: boolean;
+  favorite: boolean;
+  due_date: string | null;
+  remind_enabled: boolean;
+  remind_weekday: number | null;
+  remind_time: string | null;
+  created_at: string;
+  updated_at: string;
+  _offline: OfflineMeta;
+};
+
 export type OfflineSettings = {
   id: string;
   user_id: string;

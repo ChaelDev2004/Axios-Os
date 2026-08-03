@@ -3,6 +3,7 @@ import type {
   AiConversation,
   Database,
   LandingPageVisit,
+  Note,
   Notification,
   PomodoroSession,
   PortfolioProject,
@@ -25,17 +26,23 @@ import {
 } from "@/features/dashboard/lib/analytics";
 import { isBrowserOnline } from "@/features/offline/lib/offline-utils";
 import {
+  cacheNotes,
   cachePomodoroSessions,
   cacheTasks,
   cacheTransactions,
+  deleteLocalNote,
   deleteLocalTask,
   deleteLocalTransaction,
+  patchLocalNote,
   patchLocalTask,
+  readCachedNotes,
   readCachedPomodoroSessions,
   readCachedTasks,
   readCachedTransactions,
+  removeCachedNote,
   removeCachedTask,
   removeCachedTransaction,
+  upsertLocalNote,
   upsertLocalPomodoroSession,
   upsertLocalTask,
   upsertLocalTransaction,
@@ -48,6 +55,8 @@ type TaskInsert = Database["public"]["Tables"]["tasks"]["Insert"];
 type TaskUpdate = Database["public"]["Tables"]["tasks"]["Update"];
 type TransactionInsert = Database["public"]["Tables"]["transactions"]["Insert"];
 type TransactionUpdate = Database["public"]["Tables"]["transactions"]["Update"];
+type NoteInsert = Database["public"]["Tables"]["notes"]["Insert"];
+type NoteUpdate = Database["public"]["Tables"]["notes"]["Update"];
 type PortfolioInsert = Database["public"]["Tables"]["portfolio_projects"]["Insert"];
 type PortfolioUpdate = Database["public"]["Tables"]["portfolio_projects"]["Update"];
 type NotificationInsert = Database["public"]["Tables"]["notifications"]["Insert"];
@@ -545,6 +554,107 @@ export async function deleteTransaction(id: string): Promise<void> {
     await removeCachedTransaction(id);
   } catch {
     await deleteLocalTransaction(id);
+    await SyncService.refreshPendingCount();
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Notes
+// ---------------------------------------------------------------------------
+
+export async function fetchNotes(filters?: {
+  taskId?: string;
+  dueDate?: string;
+}): Promise<Note[]> {
+  if (!isBrowserOnline()) {
+    return readCachedNotes(filters);
+  }
+
+  try {
+    const supabase = createClient();
+    let query = supabase.from("notes").select("*").order("updated_at", { ascending: false });
+    if (filters?.taskId) query = query.eq("task_id", filters.taskId);
+    if (filters?.dueDate) query = query.eq("due_date", filters.dueDate);
+    const { data, error } = await query;
+    throwOnError(error);
+    const rows = data ?? [];
+    await cacheNotes(rows);
+    return rows;
+  } catch {
+    return readCachedNotes(filters);
+  }
+}
+
+export async function createNote(
+  input: Omit<NoteInsert, "user_id" | "id">
+): Promise<Note> {
+  const userId = await requireUserId();
+
+  if (!isBrowserOnline()) {
+    const row = await upsertLocalNote({ ...input, user_id: userId });
+    await SyncService.refreshPendingCount();
+    return row;
+  }
+
+  try {
+    const supabase = createClient();
+    const { data, error } = await supabase
+      .from("notes")
+      .insert({ ...input, user_id: userId })
+      .select()
+      .single();
+    throwOnError(error);
+    await cacheNotes([data]);
+    return data;
+  } catch {
+    const row = await upsertLocalNote({ ...input, user_id: userId });
+    await SyncService.refreshPendingCount();
+    return row;
+  }
+}
+
+export async function updateNote(
+  id: string,
+  input: Omit<NoteUpdate, "user_id" | "id">
+): Promise<Note> {
+  if (!isBrowserOnline() || id.startsWith("note_") || id.startsWith("local_")) {
+    const row = await patchLocalNote(id, input);
+    await SyncService.refreshPendingCount();
+    return row;
+  }
+
+  try {
+    const supabase = createClient();
+    const { data, error } = await supabase
+      .from("notes")
+      .update(input)
+      .eq("id", id)
+      .select()
+      .single();
+    throwOnError(error);
+    await cacheNotes([data]);
+    return data;
+  } catch {
+    const row = await patchLocalNote(id, input);
+    await SyncService.refreshPendingCount();
+    return row;
+  }
+}
+
+export async function deleteNote(id: string): Promise<void> {
+  if (!isBrowserOnline() || id.startsWith("note_") || id.startsWith("local_")) {
+    await deleteLocalNote(id);
+    await SyncService.refreshPendingCount();
+    return;
+  }
+
+  try {
+    const supabase = createClient();
+    const { error } = await supabase.from("notes").delete().eq("id", id);
+    throwOnError(error);
+    await removeCachedNote(id);
+  } catch {
+    await deleteLocalNote(id);
     await SyncService.refreshPendingCount();
   }
 }

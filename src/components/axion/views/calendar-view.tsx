@@ -1,13 +1,17 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ChevronDown, ChevronLeft, ChevronRight, Check } from "lucide-react";
+import { ChevronDown, ChevronLeft, ChevronRight, Check, Plus, StickyNote } from "lucide-react";
 import { toast } from "sonner";
 
 import {
+  useCreateNote,
+  useNotes,
   useTasks,
   useToggleTaskComplete,
 } from "@/features/dashboard/hooks/use-dashboard-queries";
+import { useDashboardNav } from "@/components/dashboard/dashboard-context";
+import { useNotesFocusStore } from "@/features/dashboard/stores/notes-focus.store";
 import { cn } from "@/lib/utils";
 import { EmptyState } from "@/components/axion/views/empty-state";
 import type { Task } from "@/features/auth/types/database.types";
@@ -64,7 +68,14 @@ type ScheduleBlock = {
 };
 
 export function CalendarView() {
+  const { setActive } = useDashboardNav();
+  const setNotesFocus = useNotesFocusStore((s) => s.setFocus);
   const { data: tasks = [], isLoading } = useTasks();
+  const { data: notes = [] } = useNotes();
+  const createNote = useCreateNote({
+    onSuccess: () => toast.success("Note created for this day"),
+    onError: (e) => toast.error(e.message),
+  });
   const toggleComplete = useToggleTaskComplete({
     onSuccess: (_, vars) =>
       toast.success(vars.completed ? "Marked as done" : "Marked incomplete"),
@@ -91,6 +102,11 @@ export function CalendarView() {
   }, [anchor]);
 
   const selectedKey = dayKey(selected);
+
+  const dayNotes = useMemo(
+    () => notes.filter((n) => n.due_date === selectedKey),
+    [notes, selectedKey]
+  );
 
   const dayTasks = useMemo(() => {
     return tasks.filter((t) => {
@@ -368,6 +384,163 @@ export function CalendarView() {
             </div>
           </div>
         )}
+      </div>
+
+      <div
+        className="axion-card"
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 16,
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 12,
+          }}
+        >
+          <div>
+            <div className="axion-kicker">Notes</div>
+            <h3 className="axion-subtitle" style={{ marginTop: 4 }}>
+              {selected.toLocaleDateString("en-PH", {
+                weekday: "long",
+                month: "short",
+                day: "numeric",
+              })}
+            </h3>
+          </div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+            <button
+              type="button"
+              style={{
+                display: "inline-flex",
+                height: 36,
+                alignItems: "center",
+                gap: 8,
+                borderRadius: 12,
+                border: "1px solid var(--border)",
+                background: "color-mix(in srgb, var(--foreground) 4%, transparent)",
+                padding: "0 12px",
+                fontSize: 12,
+                fontWeight: 600,
+                color: "var(--foreground)",
+                cursor: "pointer",
+              }}
+              onClick={() => {
+                setNotesFocus({ dueDate: selectedKey, createDraft: false });
+                setActive("notes");
+              }}
+            >
+              <StickyNote style={{ width: 14, height: 14 }} />
+              Open notes
+            </button>
+            <button
+              type="button"
+              style={{
+                display: "inline-flex",
+                height: 36,
+                alignItems: "center",
+                gap: 8,
+                borderRadius: 12,
+                border: "none",
+                background: "#6366f1",
+                padding: "0 12px",
+                fontSize: 12,
+                fontWeight: 600,
+                color: "#fff",
+                cursor: createNote.isPending ? "not-allowed" : "pointer",
+                opacity: createNote.isPending ? 0.6 : 1,
+              }}
+              onClick={() => {
+                createNote.mutate({
+                  title: `Note · ${selected.toLocaleDateString("en-PH", { month: "short", day: "numeric" })}`,
+                  body: "",
+                  due_date: selectedKey,
+                });
+              }}
+              disabled={createNote.isPending}
+            >
+              <Plus style={{ width: 14, height: 14 }} />
+              Add note
+            </button>
+          </div>
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {dayNotes.length === 0 ? (
+            <EmptyState
+              title="No notes for this day"
+              description="Add a note with a due date to see it here."
+            />
+          ) : (
+            dayNotes.map((note) => (
+              <button
+                key={note.id}
+                type="button"
+                style={{
+                  display: "flex",
+                  width: "100%",
+                  flexDirection: "column",
+                  gap: 4,
+                  borderRadius: 16,
+                  border: "1px solid var(--border)",
+                  background: "color-mix(in srgb, var(--foreground) 3%, transparent)",
+                  padding: "12px 16px",
+                  textAlign: "left",
+                  cursor: "pointer",
+                  color: "inherit",
+                }}
+                onClick={() => {
+                  setNotesFocus({ dueDate: selectedKey });
+                  setActive("notes");
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: 14,
+                    fontWeight: 600,
+                    color: "var(--foreground)",
+                  }}
+                >
+                  {note.favorite ? "♥ " : ""}
+                  {note.title}
+                </div>
+                <div
+                  style={{
+                    fontSize: 12,
+                    color: "var(--muted-foreground)",
+                    display: "-webkit-box",
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: "vertical",
+                    overflow: "hidden",
+                  }}
+                >
+                  {(note.body ?? "").trim() || "No additional text"}
+                </div>
+                {note.tag ? (
+                  <span
+                    style={{
+                      marginTop: 4,
+                      width: "fit-content",
+                      borderRadius: 999,
+                      border: "1px solid var(--border)",
+                      background: "color-mix(in srgb, var(--foreground) 5%, transparent)",
+                      padding: "2px 8px",
+                      fontSize: 10,
+                      color: "var(--foreground)",
+                    }}
+                  >
+                    {note.tag}
+                  </span>
+                ) : null}
+              </button>
+            ))
+          )}
+        </div>
       </div>
     </div>
   );

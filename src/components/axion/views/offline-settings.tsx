@@ -160,7 +160,8 @@ export function OfflineSettingsPanel() {
           {storage ? (
             <p className="mt-1 text-xs text-slate-500">
               {storage.taskCount} tasks · {storage.transactionCount} txns ·{" "}
-              {storage.sessionCount} focus · {storage.queueCount} queued
+              {storage.sessionCount} focus · {storage.noteCount} notes ·{" "}
+              {storage.queueCount} queued
             </p>
           ) : null}
         </div>

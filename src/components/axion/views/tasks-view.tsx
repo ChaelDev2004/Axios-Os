@@ -15,6 +15,7 @@ import {
   Pencil,
   Plus,
   Save,
+  StickyNote,
   Timer,
   X,
 } from "lucide-react";
@@ -28,6 +29,8 @@ import {
   useTasks,
   useUpdateTask,
 } from "@/features/dashboard/hooks/use-dashboard-queries";
+import { useDashboardNav } from "@/components/dashboard/dashboard-context";
+import { useNotesFocusStore } from "@/features/dashboard/stores/notes-focus.store";
 import { EmptyState } from "@/components/axion/views/empty-state";
 import { TasksKanbanBoard } from "@/components/ui/kanban-board";
 import {
@@ -309,18 +312,24 @@ function TaskModal({
   form,
   projects,
   saving,
+  taskId,
   onChange,
   onClose,
   onSubmit,
+  onOpenLinkedNotes,
+  onCreateLinkedNote,
 }: {
   open: boolean;
   mode: "create" | "edit";
   form: TaskFormState;
   projects: Array<{ id: string; title: string }>;
   saving: boolean;
+  taskId?: string | null;
   onChange: (next: TaskFormState) => void;
   onClose: () => void;
   onSubmit: () => void;
+  onOpenLinkedNotes?: (taskId: string) => void;
+  onCreateLinkedNote?: (taskId: string) => void;
 }) {
   const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -796,6 +805,52 @@ function TaskModal({
                       outline: "none",
                     }}
                   />
+                  {taskId ? (
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 4 }}>
+                      <button
+                        type="button"
+                        onClick={() => onOpenLinkedNotes?.(taskId)}
+                        style={{
+                          display: "inline-flex",
+                          height: 36,
+                          alignItems: "center",
+                          gap: 6,
+                          borderRadius: 10,
+                          border: `1px solid ${colors.border}`,
+                          background: colors.subtle,
+                          padding: "0 12px",
+                          fontSize: 12,
+                          fontWeight: 600,
+                          color: colors.text,
+                          cursor: "pointer",
+                        }}
+                      >
+                        <StickyNote style={{ height: 14, width: 14 }} />
+                        Linked notes
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => onCreateLinkedNote?.(taskId)}
+                        style={{
+                          display: "inline-flex",
+                          height: 36,
+                          alignItems: "center",
+                          gap: 6,
+                          borderRadius: 10,
+                          border: "1px solid rgba(99,102,241,0.35)",
+                          background: "rgba(99,102,241,0.12)",
+                          padding: "0 12px",
+                          fontSize: 12,
+                          fontWeight: 600,
+                          color: "#a5b4fc",
+                          cursor: "pointer",
+                        }}
+                      >
+                        <Plus style={{ height: 14, width: 14 }} />
+                        New note for task
+                      </button>
+                    </div>
+                  ) : null}
                 </div>
               </div>
 
@@ -899,6 +954,8 @@ function scheduleMessage(startTime: string, endTime: string) {
 }
 
 export function TasksView() {
+  const { setActive } = useDashboardNav();
+  const setNotesFocus = useNotesFocusStore((s) => s.setFocus);
   const { data: tasks = [], isLoading } = useTasks();
   const { data: projects = [] } = useProjects();
   const createNotification = useCreateNotification();
@@ -1108,6 +1165,7 @@ export function TasksView() {
               </p>
             </div>
           </div>
+          <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10 }}>
           <button
             type="button"
             onClick={() => openCreate("todo")}
@@ -1131,6 +1189,33 @@ export function TasksView() {
             <Plus style={{ height: 16, width: 16 }} />
             Add task
           </button>
+          <button
+            type="button"
+            onClick={() => {
+              setNotesFocus({});
+              setActive("notes");
+            }}
+            style={{
+              display: "inline-flex",
+              height: 44,
+              flexShrink: 0,
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 8,
+              borderRadius: "9999px",
+              background: "transparent",
+              padding: "0 20px",
+              fontSize: 14,
+              fontWeight: 600,
+              color: "var(--foreground)",
+              border: "1px solid var(--border)",
+              cursor: "pointer",
+            }}
+          >
+            <StickyNote style={{ height: 16, width: 16 }} />
+            Notes
+          </button>
+          </div>
         </div>
       </div>
 
@@ -1171,9 +1256,20 @@ export function TasksView() {
         form={form}
         projects={projects}
         saving={createTask.isPending || updateTask.isPending}
+        taskId={editingId}
         onChange={setForm}
         onClose={closeModal}
         onSubmit={submitModal}
+        onOpenLinkedNotes={(taskId) => {
+          closeModal();
+          setNotesFocus({ taskId });
+          setActive("notes");
+        }}
+        onCreateLinkedNote={(taskId) => {
+          closeModal();
+          setNotesFocus({ taskId, createDraft: true });
+          setActive("notes");
+        }}
       />
     </div>
   );

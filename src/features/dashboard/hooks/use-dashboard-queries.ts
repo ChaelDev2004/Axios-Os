@@ -10,6 +10,7 @@ import type {
   AiConversation,
   Database,
   LandingPageVisit,
+  Note,
   Notification,
   PomodoroSession,
   PortfolioProject,
@@ -22,12 +23,14 @@ import { dashboardKeys } from "@/features/dashboard/query-keys";
 import {
   completePomodoroSession,
   createAiConversation,
+  createNote,
   createNotification,
   createPortfolioProject,
   createProject,
   createTask,
   createTransaction,
   deleteAiConversation,
+  deleteNote,
   deletePortfolioProject,
   deleteProject,
   deleteTask,
@@ -35,6 +38,7 @@ import {
   fetchAiConversations,
   fetchDashboardStats,
   fetchLandingPageVisits,
+  fetchNotes,
   fetchNotifications,
   fetchPomodoroSessions,
   fetchPortfolioProjects,
@@ -47,6 +51,7 @@ import {
   recordPortfolioView,
   startPomodoroSession,
   toggleTaskComplete,
+  updateNote,
   updatePortfolioProject,
   updateProject,
   updateTask,
@@ -66,6 +71,8 @@ type TransactionUpdate = Omit<
   Database["public"]["Tables"]["transactions"]["Update"],
   "user_id" | "id"
 >;
+type NoteInsert = Omit<Database["public"]["Tables"]["notes"]["Insert"], "user_id" | "id">;
+type NoteUpdate = Omit<Database["public"]["Tables"]["notes"]["Update"], "user_id" | "id">;
 type PortfolioInsert = Omit<
   Database["public"]["Tables"]["portfolio_projects"]["Insert"],
   "user_id" | "id"
@@ -125,6 +132,17 @@ export function useTransactions(options?: QueryOpts<Transaction[]>) {
   return useQuery({
     queryKey: dashboardKeys.transactions.list(),
     queryFn: fetchTransactions,
+    ...options,
+  });
+}
+
+export function useNotes(
+  filters?: { taskId?: string; dueDate?: string },
+  options?: QueryOpts<Note[]>
+) {
+  return useQuery({
+    queryKey: dashboardKeys.notes.list(filters),
+    queryFn: () => fetchNotes(filters),
     ...options,
   });
 }
@@ -497,6 +515,54 @@ export function useDeleteTransaction(callbacks?: MutationCallbacks<void, string>
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: dashboardKeys.transactions.all() });
       invalidateStats(queryClient);
+    },
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Note mutations
+// ---------------------------------------------------------------------------
+
+export function useCreateNote(callbacks?: MutationCallbacks<Note, NoteInsert>) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: createNote,
+    onSuccess: (data, variables) => {
+      void queryClient.invalidateQueries({ queryKey: dashboardKeys.notes.all() });
+      callbacks?.onSuccess?.(data, variables);
+    },
+    onError: (error, variables) => {
+      callbacks?.onError?.(error, variables);
+    },
+  });
+}
+
+export function useUpdateNote(
+  callbacks?: MutationCallbacks<Note, { id: string; input: NoteUpdate }>
+) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, input }: { id: string; input: NoteUpdate }) => updateNote(id, input),
+    onSuccess: (data, variables) => {
+      void queryClient.invalidateQueries({ queryKey: dashboardKeys.notes.all() });
+      callbacks?.onSuccess?.(data, variables);
+    },
+    onError: (error, variables) => {
+      callbacks?.onError?.(error, variables);
+    },
+  });
+}
+
+export function useDeleteNote(callbacks?: MutationCallbacks<void, string>) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: deleteNote,
+    onSuccess: (data, variables) => {
+      void queryClient.invalidateQueries({ queryKey: dashboardKeys.notes.all() });
+      callbacks?.onSuccess?.(data, variables);
+    },
+    onError: (error, variables) => {
+      callbacks?.onError?.(error, variables);
     },
   });
 }

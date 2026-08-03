@@ -21,6 +21,12 @@ export const dashboardKeys = {
     list: () => [...dashboardKeys.transactions.all(), "list"] as const,
     detail: (id: string) => [...dashboardKeys.transactions.all(), "detail", id] as const,
   },
+  notes: {
+    all: () => [...dashboardKeys.all, "notes"] as const,
+    list: (filters?: { taskId?: string; dueDate?: string }) =>
+      [...dashboardKeys.notes.all(), "list", filters ?? {}] as const,
+    detail: (id: string) => [...dashboardKeys.notes.all(), "detail", id] as const,
+  },
   portfolio: {
     all: () => [...dashboardKeys.all, "portfolio"] as const,
     list: () => [...dashboardKeys.portfolio.all(), "list"] as const,

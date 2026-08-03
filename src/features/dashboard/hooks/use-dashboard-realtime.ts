@@ -7,6 +7,7 @@ import { dashboardKeys } from "@/features/dashboard/query-keys";
 
 const REALTIME_TABLES = [
   "tasks",
+  "notes",
   "notifications",
   "transactions",
   "pomodoro_sessions",
@@ -27,6 +28,9 @@ function invalidateForTable(
     case "tasks":
       void queryClient.invalidateQueries({ queryKey: dashboardKeys.tasks.all() });
       void queryClient.invalidateQueries({ queryKey: dashboardKeys.stats() });
+      break;
+    case "notes":
+      void queryClient.invalidateQueries({ queryKey: dashboardKeys.notes.all() });
       break;
     case "notifications":
       void queryClient.invalidateQueries({ queryKey: dashboardKeys.notifications.all() });

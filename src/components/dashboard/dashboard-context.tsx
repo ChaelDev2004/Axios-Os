@@ -7,6 +7,7 @@ export type DashboardSection =
   | "portfolio"
   | "projects"
   | "tasks"
+  | "notes"
   | "pomodoro"
   | "cashflow"
   | "calendar"

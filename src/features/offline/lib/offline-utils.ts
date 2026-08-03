@@ -72,14 +72,17 @@ export async function estimateOfflineStorage(): Promise<{
   taskCount: number;
   transactionCount: number;
   sessionCount: number;
+  noteCount: number;
   queueCount: number;
 }> {
-  const [taskCount, transactionCount, sessionCount, queueCount] = await Promise.all([
-    offlineDb.tasks.count(),
-    offlineDb.transactions.count(),
-    offlineDb.pomodoro_sessions.count(),
-    offlineDb.sync_queue.count(),
-  ]);
+  const [taskCount, transactionCount, sessionCount, noteCount, queueCount] =
+    await Promise.all([
+      offlineDb.tasks.count(),
+      offlineDb.transactions.count(),
+      offlineDb.pomodoro_sessions.count(),
+      offlineDb.notes.count(),
+      offlineDb.sync_queue.count(),
+    ]);
 
   let usedBytes = 0;
   let quotaBytes: number | null = null;
@@ -95,6 +98,7 @@ export async function estimateOfflineStorage(): Promise<{
     taskCount,
     transactionCount,
     sessionCount,
+    noteCount,
     queueCount,
   };
 }
@@ -104,6 +108,7 @@ export async function clearOfflineCache(): Promise<void> {
     offlineDb.tasks.clear(),
     offlineDb.transactions.clear(),
     offlineDb.pomodoro_sessions.clear(),
+    offlineDb.notes.clear(),
     offlineDb.sync_queue.clear(),
   ]);
 }
