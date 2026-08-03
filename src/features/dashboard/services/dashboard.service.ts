@@ -579,7 +579,8 @@ export async function fetchNotes(filters?: {
     throwOnError(error);
     const rows = data ?? [];
     await cacheNotes(rows);
-    return rows;
+    // Merge server rows with any pending local notes still in IndexedDB.
+    return readCachedNotes(filters);
   } catch {
     return readCachedNotes(filters);
   }

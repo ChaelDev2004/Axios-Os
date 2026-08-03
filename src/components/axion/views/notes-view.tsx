@@ -568,16 +568,30 @@ export function NotesView() {
       });
   }, [notes, query, focusTaskId, focusDueDate, listFilter]);
 
-  const selected = filtered.find((n) => n.id === selectedId) ?? filtered[0] ?? null;
+  // Creating a new note: keep selectedId null so Save inserts instead of overwriting.
+  const isCreating = editing && selectedId === null;
+
+  const selected = useMemo(() => {
+    if (isCreating) return null;
+    if (selectedId) {
+      return (
+        filtered.find((n) => n.id === selectedId) ??
+        notes.find((n) => n.id === selectedId) ??
+        null
+      );
+    }
+    return filtered[0] ?? null;
+  }, [isCreating, selectedId, filtered, notes]);
 
   useEffect(() => {
+    if (isCreating) return;
     if (selected && selected.id !== selectedId) {
       setSelectedId(selected.id);
     }
     if (selected && !editing) {
       setDraft(noteToDraft(selected));
     }
-  }, [selected, selectedId, editing]);
+  }, [selected, selectedId, editing, isCreating]);
 
   useEffect(() => {
     if (!createDraftFlag) return;
@@ -628,7 +642,7 @@ export function NotesView() {
       remind_weekday: draft.remindWeekday === "" ? null : Number(draft.remindWeekday),
       remind_time: draft.remindTime || "09:00",
     };
-    if (selectedId && selected) {
+    if (selectedId) {
       updateNote.mutate({ id: selectedId, input: payload });
     } else {
       createNote.mutate(payload);
