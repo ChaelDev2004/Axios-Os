@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from "react";
 import {
   Copy,
   Eye,
@@ -39,18 +39,46 @@ const card: CSSProperties = {
   textAlign: "left",
 };
 
-const iconBtn: CSSProperties = {
-  display: "inline-flex",
-  alignItems: "center",
-  justifyContent: "center",
-  width: 34,
-  height: 34,
-  borderRadius: 10,
-  border: "1px solid var(--border)",
-  background: "color-mix(in srgb, var(--foreground) 4%, transparent)",
-  color: "var(--muted-foreground)",
+const menuItemStyle: CSSProperties = {
+  padding: "8px 10px",
+  fontSize: 13,
   cursor: "pointer",
+  borderRadius: 8,
+  outline: "none",
+  color: "var(--foreground)",
 };
+
+function ActionIconButton({
+  label,
+  onClick,
+  children,
+  favorite,
+  danger,
+}: {
+  label: string;
+  onClick?: () => void;
+  children: ReactNode;
+  favorite?: boolean;
+  danger?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      className={[
+        "vault-icon-btn",
+        favorite ? "is-favorite" : "",
+        danger ? "is-danger" : "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
+      aria-label={label}
+      title={label}
+      onClick={onClick}
+    >
+      {children}
+    </button>
+  );
+}
 
 export function VaultCard({
   credential,
@@ -89,61 +117,67 @@ export function VaultCard({
     if (url) window.open(url, "_blank", "noopener,noreferrer");
   };
 
-  const actions = (
-    <>
-      {credential.secret ? (
+  const moreMenu = (
+    <DropdownMenu.Root>
+      <DropdownMenu.Trigger asChild>
         <button
           type="button"
-          style={iconBtn}
-          aria-label={revealed ? "Hide secret" : "Show secret"}
-          onClick={() => setRevealed((v) => !v)}
+          className="vault-icon-btn"
+          aria-label="More actions"
+          title="More actions"
         >
-          {revealed ? <EyeOff style={{ width: 15, height: 15 }} /> : <Eye style={{ width: 15, height: 15 }} />}
+          <MoreHorizontal aria-hidden />
         </button>
-      ) : null}
-      {credential.username ? (
-        <button
-          type="button"
-          style={iconBtn}
-          aria-label="Copy username"
-          onClick={() => void copySecure(credential.username ?? "", "Username")}
-        >
-          <Copy style={{ width: 14, height: 14 }} />
-        </button>
-      ) : null}
-      {credential.secret ? (
-        <button
-          type="button"
-          style={iconBtn}
-          aria-label={`Copy ${secretLabel}`}
-          onClick={() => void copySecure(credential.secret ?? "", secretLabel)}
-        >
-          <Copy style={{ width: 14, height: 14 }} />
-        </button>
-      ) : null}
-      {credential.website ? (
-        <button type="button" style={iconBtn} aria-label="Open website" onClick={openSite}>
-          <ExternalLink style={{ width: 14, height: 14 }} />
-        </button>
-      ) : null}
-      <button
-        type="button"
-        style={{
-          ...iconBtn,
-          color: credential.favorite ? "#fbbf24" : "var(--muted-foreground)",
-        }}
-        aria-label={credential.favorite ? "Unfavorite" : "Favorite"}
-        onClick={onToggleFavorite}
-      >
-        <Star
+      </DropdownMenu.Trigger>
+      <DropdownMenu.Portal>
+        <DropdownMenu.Content
+          sideOffset={6}
           style={{
-            width: 15,
-            height: 15,
-            fill: credential.favorite ? "#fbbf24" : "none",
+            zIndex: 60,
+            minWidth: 160,
+            borderRadius: 12,
+            border: "1px solid var(--border)",
+            background: "var(--background)",
+            padding: 6,
+            boxShadow: "0 12px 40px rgba(0,0,0,0.35)",
           }}
-        />
-      </button>
-    </>
+        >
+          <DropdownMenu.Item style={menuItemStyle} onSelect={onEdit}>
+            Edit
+          </DropdownMenu.Item>
+          <DropdownMenu.Item style={menuItemStyle} onSelect={onToggleFavorite}>
+            {credential.favorite ? "Unfavorite" : "Favorite"}
+          </DropdownMenu.Item>
+          {credential.username ? (
+            <DropdownMenu.Item
+              style={menuItemStyle}
+              onSelect={() => void copySecure(credential.username ?? "", "Username")}
+            >
+              Copy username
+            </DropdownMenu.Item>
+          ) : null}
+          {credential.secret ? (
+            <DropdownMenu.Item
+              style={menuItemStyle}
+              onSelect={() => void copySecure(credential.secret ?? "", secretLabel)}
+            >
+              Copy {secretLabel}
+            </DropdownMenu.Item>
+          ) : null}
+          {credential.website ? (
+            <DropdownMenu.Item style={menuItemStyle} onSelect={openSite}>
+              Open website
+            </DropdownMenu.Item>
+          ) : null}
+          <DropdownMenu.Item
+            style={{ ...menuItemStyle, color: "#fca5a5" }}
+            onSelect={onDelete}
+          >
+            Delete
+          </DropdownMenu.Item>
+        </DropdownMenu.Content>
+      </DropdownMenu.Portal>
+    </DropdownMenu.Root>
   );
 
   return (
@@ -164,12 +198,23 @@ export function VaultCard({
               overflow: "hidden",
               textOverflow: "ellipsis",
               whiteSpace: "nowrap",
+              color: "var(--foreground)",
             }}
           >
             {credential.name}
           </div>
           {credential.favorite ? (
-            <Star style={{ width: 12, height: 12, color: "#fbbf24", fill: "#fbbf24", flexShrink: 0 }} />
+            <Star
+              aria-hidden
+              style={{
+                width: 12,
+                height: 12,
+                color: "#fbbf24",
+                fill: "#fbbf24",
+                stroke: "#fbbf24",
+                flexShrink: 0,
+              }}
+            />
           ) : null}
         </div>
         <div
@@ -219,71 +264,61 @@ export function VaultCard({
         ) : null}
       </div>
 
-      <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
-        {compactActions ? (
-          <DropdownMenu.Root>
-            <DropdownMenu.Trigger asChild>
-              <button type="button" style={iconBtn} aria-label="More actions">
-                <MoreHorizontal style={{ width: 16, height: 16 }} />
-              </button>
-            </DropdownMenu.Trigger>
-            <DropdownMenu.Portal>
-              <DropdownMenu.Content
-                sideOffset={6}
-                style={{
-                  zIndex: 60,
-                  minWidth: 160,
-                  borderRadius: 12,
-                  border: "1px solid var(--border)",
-                  background: "var(--background)",
-                  padding: 6,
-                  boxShadow: "0 12px 40px rgba(0,0,0,0.35)",
-                }}
-              >
-                <DropdownMenu.Item
-                  style={{ padding: "8px 10px", fontSize: 13, cursor: "pointer", borderRadius: 8, outline: "none" }}
-                  onSelect={onEdit}
-                >
-                  Edit
-                </DropdownMenu.Item>
-                <DropdownMenu.Item
-                  style={{ padding: "8px 10px", fontSize: 13, cursor: "pointer", borderRadius: 8, outline: "none" }}
-                  onSelect={onToggleFavorite}
-                >
-                  {credential.favorite ? "Unfavorite" : "Favorite"}
-                </DropdownMenu.Item>
-                {credential.secret ? (
-                  <DropdownMenu.Item
-                    style={{ padding: "8px 10px", fontSize: 13, cursor: "pointer", borderRadius: 8, outline: "none" }}
-                    onSelect={() => void copySecure(credential.secret ?? "", secretLabel)}
-                  >
-                    Copy {secretLabel}
-                  </DropdownMenu.Item>
-                ) : null}
-                <DropdownMenu.Item
-                  style={{ padding: "8px 10px", fontSize: 13, cursor: "pointer", borderRadius: 8, outline: "none", color: "#fca5a5" }}
-                  onSelect={onDelete}
-                >
-                  Delete
-                </DropdownMenu.Item>
-              </DropdownMenu.Content>
-            </DropdownMenu.Portal>
-          </DropdownMenu.Root>
-        ) : (
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 6,
+          flexShrink: 0,
+        }}
+      >
+        {credential.secret ? (
+          <ActionIconButton
+            label={revealed ? "Hide secret" : "Show secret"}
+            onClick={() => setRevealed((v) => !v)}
+          >
+            {revealed ? <EyeOff aria-hidden /> : <Eye aria-hidden />}
+          </ActionIconButton>
+        ) : null}
+        {credential.username ? (
+          <ActionIconButton
+            label="Copy username"
+            onClick={() => void copySecure(credential.username ?? "", "Username")}
+          >
+            <Copy aria-hidden />
+          </ActionIconButton>
+        ) : null}
+        {credential.secret ? (
+          <ActionIconButton
+            label={`Copy ${secretLabel}`}
+            onClick={() => void copySecure(credential.secret ?? "", secretLabel)}
+          >
+            <Copy aria-hidden />
+          </ActionIconButton>
+        ) : null}
+        {credential.website ? (
+          <ActionIconButton label="Open website" onClick={openSite}>
+            <ExternalLink aria-hidden />
+          </ActionIconButton>
+        ) : null}
+        <ActionIconButton
+          label={credential.favorite ? "Unfavorite" : "Favorite"}
+          onClick={onToggleFavorite}
+          favorite={credential.favorite}
+        >
+          <Star aria-hidden />
+        </ActionIconButton>
+        {!compactActions ? (
           <>
-            {actions}
-            <button type="button" style={iconBtn} aria-label="Edit" onClick={onEdit}>
-              <Pencil style={{ width: 14, height: 14 }} />
-            </button>
-            <button
-              type="button"
-              style={{ ...iconBtn, color: "#fca5a5" }}
-              aria-label="Delete"
-              onClick={onDelete}
-            >
-              <Trash2 style={{ width: 14, height: 14 }} />
-            </button>
+            <ActionIconButton label="Edit" onClick={onEdit}>
+              <Pencil aria-hidden />
+            </ActionIconButton>
+            <ActionIconButton label="Delete" onClick={onDelete} danger>
+              <Trash2 aria-hidden />
+            </ActionIconButton>
           </>
+        ) : (
+          moreMenu
         )}
       </div>
     </div>

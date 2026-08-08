@@ -1182,12 +1182,88 @@ html.is-native-app .axion-topbar {
 }
 
 /* Buttons inside Axion — consistent padding */
-.axion button:not([class*="w-10"]):not([class*="w-11"]):not([class*="w-9"]):not(.axion-nav-item):not(.axion-fab):not(.axion-sidebar-footer-btn):not(.axion-bottom-nav-btn):not(.axion-topbar-btn):not(.menu__item) {
+.axion button:not([class*="w-10"]):not([class*="w-11"]):not([class*="w-9"]):not(.axion-nav-item):not(.axion-fab):not(.axion-sidebar-footer-btn):not(.axion-bottom-nav-btn):not(.axion-topbar-btn):not(.menu__item):not(.vault-icon-btn) {
   min-height: 2.75rem;
   padding-left: 1.25rem;
   padding-right: 1.25rem;
   padding-top: 0.65rem;
   padding-bottom: 0.65rem;
+}
+
+/* Vault credential action icons — must beat global button padding */
+.axion button.vault-icon-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 2.125rem !important;
+  height: 2.125rem !important;
+  min-width: 2.125rem !important;
+  min-height: 2.125rem !important;
+  max-width: 2.125rem !important;
+  max-height: 2.125rem !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border-radius: 0.65rem !important;
+  border: 1px solid rgb(255 255 255 / 0.16) !important;
+  background: rgb(255 255 255 / 0.1) !important;
+  color: #f8fafc !important;
+  cursor: pointer !important;
+  flex-shrink: 0 !important;
+  line-height: 0 !important;
+  box-sizing: border-box !important;
+  overflow: visible !important;
+}
+
+.axion button.vault-icon-btn:hover {
+  background: rgb(255 255 255 / 0.18) !important;
+  color: #ffffff !important;
+}
+
+.axion button.vault-icon-btn svg {
+  width: 1rem !important;
+  height: 1rem !important;
+  min-width: 1rem !important;
+  min-height: 1rem !important;
+  max-width: 1rem !important;
+  max-height: 1rem !important;
+  fill: none !important;
+  stroke: #f8fafc !important;
+  stroke-width: 2 !important;
+  color: #f8fafc !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  display: block !important;
+  flex-shrink: 0 !important;
+}
+
+.axion button.vault-icon-btn.is-favorite {
+  color: #fbbf24 !important;
+}
+
+.axion button.vault-icon-btn.is-favorite svg {
+  stroke: #fbbf24 !important;
+  fill: #fbbf24 !important;
+  color: #fbbf24 !important;
+}
+
+.axion button.vault-icon-btn.is-danger {
+  color: #fca5a5 !important;
+}
+
+.axion button.vault-icon-btn.is-danger svg {
+  stroke: #fca5a5 !important;
+  color: #fca5a5 !important;
+}
+
+.axion:not(.dark) button.vault-icon-btn {
+  border-color: rgb(15 23 42 / 0.12) !important;
+  background: rgb(15 23 42 / 0.06) !important;
+  color: #0f172a !important;
+}
+
+.axion:not(.dark) button.vault-icon-btn svg {
+  stroke: #0f172a !important;
+  color: #0f172a !important;
 }
 
 .axion button.rounded-full {

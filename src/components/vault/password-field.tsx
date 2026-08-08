@@ -39,19 +39,6 @@ const inputStyle: CSSProperties = {
   padding: "10px 0",
 };
 
-const iconBtn: CSSProperties = {
-  display: "inline-flex",
-  alignItems: "center",
-  justifyContent: "center",
-  width: 32,
-  height: 32,
-  borderRadius: 8,
-  border: "none",
-  background: "transparent",
-  color: "var(--muted-foreground)",
-  cursor: "pointer",
-};
-
 export function PasswordField({
   value,
   onChange,
@@ -93,30 +80,33 @@ export function PasswordField({
         />
         <button
           type="button"
-          style={iconBtn}
+          className="vault-icon-btn"
+          style={{ background: "transparent", border: "none" }}
           aria-label={visible ? "Hide secret" : "Show secret"}
           onClick={() => setVisible((v) => !v)}
         >
-          {visible ? <EyeOff style={{ width: 16, height: 16 }} /> : <Eye style={{ width: 16, height: 16 }} />}
+          {visible ? <EyeOff aria-hidden /> : <Eye aria-hidden />}
         </button>
         {showCopy ? (
           <button
             type="button"
-            style={iconBtn}
+            className="vault-icon-btn"
+            style={{ background: "transparent", border: "none" }}
             aria-label="Copy"
             onClick={() => void copySecure(value, "Password")}
           >
-            <Copy style={{ width: 15, height: 15 }} />
+            <Copy aria-hidden />
           </button>
         ) : null}
         {showGenerate ? (
           <button
             type="button"
-            style={iconBtn}
+            className="vault-icon-btn"
+            style={{ background: "transparent", border: "none" }}
             aria-label="Generate password"
             onClick={onGenerateClick}
           >
-            <Wand2 style={{ width: 15, height: 15 }} />
+            <Wand2 aria-hidden />
           </button>
         ) : null}
       </div>
