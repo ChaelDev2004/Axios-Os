@@ -110,8 +110,9 @@ const panel: CSSProperties = {
   maxHeight: "min(92vh, 760px)",
   overflowY: "auto",
   borderRadius: 20,
-  border: "1px solid rgba(255,255,255,0.12)",
+  border: "1px solid var(--border)",
   background: "color-mix(in srgb, var(--background) 94%, #0f1220)",
+  color: "var(--foreground)",
   padding: 20,
   marginBottom: 8,
 };
@@ -252,6 +253,7 @@ export function CredentialDialog({
 
   return createPortal(
     <div
+      className="vault-modal-root"
       style={overlay}
       role="presentation"
       onMouseDown={(e) => {

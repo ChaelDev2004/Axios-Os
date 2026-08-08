@@ -22,6 +22,7 @@ const panel: CSSProperties = {
   borderRadius: 16,
   border: "1px solid var(--border)",
   background: "color-mix(in srgb, var(--background) 92%, #6366f1)",
+  color: "var(--foreground)",
 };
 
 export function PasswordGenerator({ onUse, onClose }: PasswordGeneratorProps) {
@@ -51,7 +52,7 @@ export function PasswordGenerator({ onUse, onClose }: PasswordGeneratorProps) {
         </button>
       </div>
 
-      <label style={{ display: "flex", flexDirection: "column", gap: 8, fontSize: 12 }}>
+      <label style={{ display: "flex", flexDirection: "column", gap: 8, fontSize: 12, color: "var(--foreground)" }}>
         Length: {options.length}
         <input
           type="range"
@@ -66,7 +67,7 @@ export function PasswordGenerator({ onUse, onClose }: PasswordGeneratorProps) {
         />
       </label>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, fontSize: 12 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, fontSize: 12, color: "var(--foreground)" }}>
         {(
           [
             ["uppercase", "Uppercase"],
@@ -75,7 +76,7 @@ export function PasswordGenerator({ onUse, onClose }: PasswordGeneratorProps) {
             ["symbols", "Symbols"],
           ] as const
         ).map(([key, label]) => (
-          <label key={key} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <label key={key} style={{ display: "flex", alignItems: "center", gap: 8, color: "var(--foreground)" }}>
             <input
               type="checkbox"
               checked={options[key]}
@@ -105,22 +106,22 @@ export function PasswordGenerator({ onUse, onClose }: PasswordGeneratorProps) {
           wordBreak: "break-all",
         }}
       >
-        <span style={{ flex: 1, minWidth: 0 }}>{preview}</span>
+        <span style={{ flex: 1, minWidth: 0, color: "var(--foreground)" }}>{preview}</span>
         <button
           type="button"
+          className="vault-icon-btn"
           aria-label="Regenerate"
           onClick={() => regenerate()}
-          style={{ border: "none", background: "transparent", cursor: "pointer", color: "var(--muted-foreground)" }}
         >
-          <RefreshCw style={{ width: 14, height: 14 }} />
+          <RefreshCw aria-hidden />
         </button>
         <button
           type="button"
+          className="vault-icon-btn"
           aria-label="Copy generated password"
           onClick={() => void copySecure(preview, "Password")}
-          style={{ border: "none", background: "transparent", cursor: "pointer", color: "var(--muted-foreground)" }}
         >
-          <Copy style={{ width: 14, height: 14 }} />
+          <Copy aria-hidden />
         </button>
       </div>
 

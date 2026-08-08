@@ -1190,8 +1190,20 @@ html.is-native-app .axion-topbar {
   padding-bottom: 0.65rem;
 }
 
+/* Vault modal (portaled to body) — inherit theme colors, not body #111 */
+.vault-modal-root {
+  color: var(--foreground);
+}
+
+.vault-modal-root input::placeholder,
+.vault-modal-root textarea::placeholder {
+  color: var(--muted-foreground);
+  opacity: 1;
+}
+
 /* Vault credential action icons — must beat global button padding */
-.axion button.vault-icon-btn {
+.axion button.vault-icon-btn,
+.vault-modal-root button.vault-icon-btn {
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
@@ -1214,12 +1226,14 @@ html.is-native-app .axion-topbar {
   overflow: visible !important;
 }
 
-.axion button.vault-icon-btn:hover {
+.axion button.vault-icon-btn:hover,
+.vault-modal-root button.vault-icon-btn:hover {
   background: rgb(255 255 255 / 0.18) !important;
   color: #ffffff !important;
 }
 
-.axion button.vault-icon-btn svg {
+.axion button.vault-icon-btn svg,
+.vault-modal-root button.vault-icon-btn svg {
   width: 1rem !important;
   height: 1rem !important;
   min-width: 1rem !important;
@@ -1255,13 +1269,15 @@ html.is-native-app .axion-topbar {
   color: #fca5a5 !important;
 }
 
-.axion:not(.dark) button.vault-icon-btn {
+.axion:not(.dark) button.vault-icon-btn,
+html:not(.dark) .vault-modal-root button.vault-icon-btn {
   border-color: rgb(15 23 42 / 0.12) !important;
   background: rgb(15 23 42 / 0.06) !important;
   color: #0f172a !important;
 }
 
-.axion:not(.dark) button.vault-icon-btn svg {
+.axion:not(.dark) button.vault-icon-btn svg,
+html:not(.dark) .vault-modal-root button.vault-icon-btn svg {
   stroke: #0f172a !important;
   color: #0f172a !important;
 }
