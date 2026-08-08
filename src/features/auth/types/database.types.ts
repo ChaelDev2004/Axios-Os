@@ -265,6 +265,145 @@ export interface Database {
           },
         ];
       };
+      vault_folders: {
+        Row: {
+          id: string;
+          user_id: string;
+          name: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          name: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          name?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "vault_folders_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      vault_settings: {
+        Row: {
+          user_id: string;
+          pin_hash: string;
+          kdf_salt: string;
+          auto_lock_minutes: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          user_id: string;
+          pin_hash: string;
+          kdf_salt: string;
+          auto_lock_minutes?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          user_id?: string;
+          pin_hash?: string;
+          kdf_salt?: string;
+          auto_lock_minutes?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "vault_settings_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: true;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      vault_credentials: {
+        Row: {
+          id: string;
+          user_id: string;
+          name: string;
+          type: string;
+          username: string | null;
+          encrypted_secret: string | null;
+          website: string | null;
+          domain: string | null;
+          icon_url: string | null;
+          folder_id: string | null;
+          favorite: boolean;
+          tags: string[];
+          encrypted_notes: string | null;
+          encrypted_meta: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          name: string;
+          type?: string;
+          username?: string | null;
+          encrypted_secret?: string | null;
+          website?: string | null;
+          domain?: string | null;
+          icon_url?: string | null;
+          folder_id?: string | null;
+          favorite?: boolean;
+          tags?: string[];
+          encrypted_notes?: string | null;
+          encrypted_meta?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          name?: string;
+          type?: string;
+          username?: string | null;
+          encrypted_secret?: string | null;
+          website?: string | null;
+          domain?: string | null;
+          icon_url?: string | null;
+          folder_id?: string | null;
+          favorite?: boolean;
+          tags?: string[];
+          encrypted_notes?: string | null;
+          encrypted_meta?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "vault_credentials_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "vault_credentials_folder_id_fkey";
+            columns: ["folder_id"];
+            isOneToOne: false;
+            referencedRelation: "vault_folders";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       pomodoro_sessions: {
         Row: {
           id: string;
@@ -798,6 +937,9 @@ export type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 export type Project = Database["public"]["Tables"]["projects"]["Row"];
 export type Task = Database["public"]["Tables"]["tasks"]["Row"];
 export type Note = Database["public"]["Tables"]["notes"]["Row"];
+export type VaultFolderRow = Database["public"]["Tables"]["vault_folders"]["Row"];
+export type VaultCredentialRow = Database["public"]["Tables"]["vault_credentials"]["Row"];
+export type VaultSettingsRow = Database["public"]["Tables"]["vault_settings"]["Row"];
 export type PomodoroSession = Database["public"]["Tables"]["pomodoro_sessions"]["Row"];
 export type Transaction = Database["public"]["Tables"]["transactions"]["Row"];
 export type PortfolioProject = Database["public"]["Tables"]["portfolio_projects"]["Row"];

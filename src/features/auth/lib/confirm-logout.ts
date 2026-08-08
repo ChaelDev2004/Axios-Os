@@ -4,6 +4,7 @@ import Swal from "sweetalert2";
 import "sweetalert2/dist/sweetalert2.min.css";
 
 import { logoutAction } from "@/features/auth/actions/auth.actions";
+import { useVaultLockStore } from "@/features/vault/stores/vault-lock.store";
 
 export async function confirmAndLogout(): Promise<void> {
   const confirm = await Swal.fire({
@@ -19,6 +20,8 @@ export async function confirmAndLogout(): Promise<void> {
   });
 
   if (!confirm.isConfirmed) return;
+
+  useVaultLockStore.getState().lock();
 
   await Swal.fire({
     title: "Goodbye!",

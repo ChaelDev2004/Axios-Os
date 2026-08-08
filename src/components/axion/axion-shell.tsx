@@ -24,6 +24,7 @@ import {
   StickyNote,
   Sun,
   Timer,
+  LockKeyhole,
   Wallet,
   Workflow,
   X,
@@ -94,6 +95,7 @@ const NAV_GROUPS: Array<{
       { id: "projects", label: "Projects", icon: <Workflow className="h-4 w-4" /> },
       { id: "tasks", label: "Tasks", icon: <ListTodo className="h-4 w-4" /> },
       { id: "notes", label: "Notes", icon: <StickyNote className="h-4 w-4" /> },
+      { id: "vault", label: "Vault", icon: <LockKeyhole className="h-4 w-4" /> },
     ],
   },
   {

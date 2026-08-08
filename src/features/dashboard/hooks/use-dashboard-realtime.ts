@@ -16,6 +16,8 @@ const REALTIME_TABLES = [
   "portfolio_view_events",
   "landing_page_visits",
   "ai_conversations",
+  "vault_credentials",
+  "vault_folders",
 ] as const;
 
 type RealtimeTable = (typeof REALTIME_TABLES)[number];
@@ -59,6 +61,10 @@ function invalidateForTable(
       break;
     case "ai_conversations":
       void queryClient.invalidateQueries({ queryKey: dashboardKeys.ai.all() });
+      break;
+    case "vault_credentials":
+    case "vault_folders":
+      void queryClient.invalidateQueries({ queryKey: ["vault"] });
       break;
     default:
       break;
