@@ -1,9 +1,16 @@
-import { Capacitor } from "@capacitor/core";
-import { Camera, CameraResultType, CameraSource } from "@capacitor/camera";
+import { Capacitor, registerPlugin } from "@capacitor/core";
+import { Camera, CameraResultType, CameraSource, type PermissionStatus } from "@capacitor/camera";
 
 import { isNativeApp } from "@/lib/capacitor/native-shell";
 
-export type CameraPermission = "granted" | "denied" | "web";
+/** `blocked` = Android will no longer show the system prompt; only App Settings can grant it. */
+export type CameraPermission = "granted" | "denied" | "blocked" | "web";
+
+interface AppSettingsPlugin {
+  open: () => Promise<void>;
+}
+
+const AppSettings = registerPlugin<AppSettingsPlugin>("AppSettings");
 
 const CANCEL_PATTERN = /cancel/i;
 
@@ -11,15 +18,40 @@ export function hasNativeCamera(): boolean {
   return isNativeApp() && Capacitor.isPluginAvailable("Camera");
 }
 
-export async function ensureCameraPermission(): Promise<CameraPermission> {
+function isGranted(status: PermissionStatus): boolean {
+  return status.camera === "granted" || status.camera === "limited";
+}
+
+export async function getCameraPermission(): Promise<CameraPermission> {
   if (!hasNativeCamera()) return "web";
   try {
-    const current = await Camera.checkPermissions();
-    if (current.camera === "granted" || current.camera === "limited") return "granted";
-    const requested = await Camera.requestPermissions({ permissions: ["camera"] });
-    return requested.camera === "granted" || requested.camera === "limited" ? "granted" : "denied";
+    const status = await Camera.checkPermissions();
+    if (isGranted(status)) return "granted";
+    return status.camera === "denied" ? "blocked" : "denied";
   } catch {
     return "denied";
+  }
+}
+
+export async function ensureCameraPermission(): Promise<CameraPermission> {
+  const current = await getCameraPermission();
+  if (current !== "denied") return current;
+  try {
+    const requested = await Camera.requestPermissions({ permissions: ["camera"] });
+    if (isGranted(requested)) return "granted";
+    return requested.camera === "denied" ? "blocked" : "denied";
+  } catch {
+    return "denied";
+  }
+}
+
+export async function openAppSettings(): Promise<boolean> {
+  if (!isNativeApp() || !Capacitor.isPluginAvailable("AppSettings")) return false;
+  try {
+    await AppSettings.open();
+    return true;
+  } catch {
+    return false;
   }
 }
 

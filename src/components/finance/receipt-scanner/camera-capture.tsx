@@ -1,11 +1,17 @@
 "use client";
 
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
-import { ArrowLeft, Camera, CameraOff, Image as ImageIcon, Keyboard, Loader2, Zap, ZapOff } from "lucide-react";
+import { ArrowLeft, Camera, CameraOff, Image as ImageIcon, Keyboard, Loader2, Settings, Zap, ZapOff } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { canvasToBlob, type CropRect } from "@/features/finance/lib/receipt-image";
-import { ensureCameraPermission, hasNativeCamera, takeSystemPhoto } from "@/lib/capacitor/camera";
+import {
+  ensureCameraPermission,
+  getCameraPermission,
+  hasNativeCamera,
+  openAppSettings,
+  takeSystemPhoto,
+} from "@/lib/capacitor/camera";
 
 interface CameraCaptureProps {
   onCapture: (blob: Blob, crop?: CropRect) => void;
@@ -13,7 +19,7 @@ interface CameraCaptureProps {
   onManual: () => void;
 }
 
-type CameraIssue = "denied" | "unavailable" | "insecure" | "systemCamera";
+type CameraIssue = "denied" | "blocked" | "unavailable" | "insecure" | "systemCamera";
 
 interface TorchCapabilities extends MediaTrackCapabilities {
   torch?: boolean;
@@ -28,8 +34,11 @@ const FRAME_MARGIN = 0.03;
 const CAMERA_ISSUE_MESSAGES: Record<CameraIssue, { title: string; message: string }> = {
   denied: {
     title: "Camera access denied",
-    message:
-      "Tap Allow camera to try again. If no prompt appears, enable Camera in your phone's Settings > Apps > AXIOS OS > Permissions.",
+    message: "Tap Allow camera, then choose Allow on the camera prompt.",
+  },
+  blocked: {
+    title: "Camera is turned off",
+    message: "Tap Open Settings, go to Permissions > Camera, and choose Allow. Then return to the app.",
   },
   systemCamera: {
     title: "Use your phone camera",
@@ -84,6 +93,7 @@ export function CameraCapture({ onCapture, onClose, onManual }: CameraCapturePro
   const [isCapturing, setIsCapturing] = useState(false);
   const [attempt, setAttempt] = useState(0);
   const [isOpeningCamera, setIsOpeningCamera] = useState(false);
+  const [isRequestingPermission, setIsRequestingPermission] = useState(false);
 
   useEffect(() => {
     let isCancelled = false;
@@ -92,8 +102,8 @@ export function CameraCapture({ onCapture, onClose, onManual }: CameraCapturePro
     async function start() {
       const permission = await ensureCameraPermission();
       if (isCancelled) return;
-      if (permission === "denied") {
-        setIssue("denied");
+      if (permission === "denied" || permission === "blocked") {
+        setIssue(permission);
         return;
       }
       const isNative = permission === "granted";
@@ -126,8 +136,9 @@ export function CameraCapture({ onCapture, onClose, onManual }: CameraCapturePro
       } catch (e) {
         if (isCancelled) return;
         const name = e instanceof DOMException ? e.name : "";
-        if (name === "NotAllowedError" || name === "SecurityError") setIssue("denied");
-        else setIssue(isNative ? "systemCamera" : "unavailable");
+        if (name === "NotAllowedError" || name === "SecurityError") {
+          setIssue((await getCameraPermission()) === "blocked" ? "blocked" : "denied");
+        } else setIssue(isNative ? "systemCamera" : "unavailable");
       }
     }
 
@@ -139,10 +150,41 @@ export function CameraCapture({ onCapture, onClose, onManual }: CameraCapturePro
     };
   }, [attempt]);
 
-  function retryPermission() {
+  const isPermissionIssue = issue === "denied" || issue === "blocked";
+
+  useEffect(() => {
+    if (!isPermissionIssue) return;
+    async function recheck() {
+      if (document.visibilityState === "visible" && (await getCameraPermission()) === "granted") restartCamera();
+    }
+    document.addEventListener("visibilitychange", recheck);
+    return () => document.removeEventListener("visibilitychange", recheck);
+  }, [isPermissionIssue]);
+
+  function restartCamera() {
     setIssue(null);
     setIsReady(false);
     setAttempt((n) => n + 1);
+  }
+
+  async function allowCamera() {
+    if (isRequestingPermission) return;
+    setIsRequestingPermission(true);
+    try {
+      const permission = await ensureCameraPermission();
+      if (permission === "blocked") {
+        setIssue("blocked");
+        await openAppSettings();
+        return;
+      }
+      if (permission === "denied") {
+        setIssue("denied");
+        return;
+      }
+      restartCamera();
+    } finally {
+      setIsRequestingPermission(false);
+    }
   }
 
   async function takePhoto() {
@@ -153,8 +195,9 @@ export function CameraCapture({ onCapture, onClose, onManual }: CameraCapturePro
     if (isOpeningCamera) return;
     setIsOpeningCamera(true);
     try {
-      if ((await ensureCameraPermission()) === "denied") {
-        setIssue("denied");
+      const permission = await ensureCameraPermission();
+      if (permission === "denied" || permission === "blocked") {
+        setIssue(permission);
         return;
       }
       const blob = await takeSystemPhoto();
@@ -253,15 +296,27 @@ export function CameraCapture({ onCapture, onClose, onManual }: CameraCapturePro
               <p className="mt-2! text-sm leading-relaxed text-white/70">{issueCopy.message}</p>
             </div>
             <div className="mt-2! flex w-full max-w-xs flex-col gap-3">
-              {issue === "denied" && (
-                <Button className="h-12 w-full rounded-full px-5!" onClick={retryPermission}>
-                  <Camera /> Allow camera
+              {isPermissionIssue && (
+                <Button
+                  className="h-12 w-full rounded-full px-5!"
+                  onClick={() => void allowCamera()}
+                  disabled={isRequestingPermission}
+                  aria-busy={isRequestingPermission}
+                >
+                  {isRequestingPermission ? (
+                    <Loader2 className="animate-spin" aria-hidden />
+                  ) : issue === "blocked" ? (
+                    <Settings aria-hidden />
+                  ) : (
+                    <Camera aria-hidden />
+                  )}
+                  {issue === "blocked" ? "Open Settings" : "Allow camera"}
                 </Button>
               )}
               <Button
-                variant={issue === "denied" ? "outline" : "default"}
+                variant={isPermissionIssue ? "outline" : "default"}
                 className={
-                  issue === "denied"
+                  isPermissionIssue
                     ? "h-12 w-full rounded-full border-white/20 bg-white/5 px-5! text-white hover:bg-white/10"
                     : "h-12 w-full rounded-full px-5!"
                 }
