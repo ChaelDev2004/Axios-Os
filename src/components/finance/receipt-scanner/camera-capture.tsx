@@ -1,12 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
-import { ArrowLeft, Camera, CameraOff, Image as ImageIcon, Keyboard, Zap, ZapOff } from "lucide-react";
+import { ArrowLeft, Camera, CameraOff, Image as ImageIcon, Keyboard, Loader2, Zap, ZapOff } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { canvasToBlob, type CropRect } from "@/features/finance/lib/receipt-image";
-import { ensureCameraPermission, takeSystemPhoto } from "@/lib/capacitor/camera";
-import { isNativeApp } from "@/lib/capacitor/native-shell";
+import { ensureCameraPermission, hasNativeCamera, takeSystemPhoto } from "@/lib/capacitor/camera";
 
 interface CameraCaptureProps {
   onCapture: (blob: Blob, crop?: CropRect) => void;
@@ -84,6 +83,7 @@ export function CameraCapture({ onCapture, onClose, onManual }: CameraCapturePro
   const [isTorchOn, setIsTorchOn] = useState(false);
   const [isCapturing, setIsCapturing] = useState(false);
   const [attempt, setAttempt] = useState(0);
+  const [isOpeningCamera, setIsOpeningCamera] = useState(false);
 
   useEffect(() => {
     let isCancelled = false;
@@ -146,19 +146,23 @@ export function CameraCapture({ onCapture, onClose, onManual }: CameraCapturePro
   }
 
   async function takePhoto() {
-    if (!isNativeApp()) {
+    if (!hasNativeCamera()) {
       nativeCameraRef.current?.click();
       return;
     }
-    if ((await ensureCameraPermission()) === "denied") {
-      setIssue("denied");
-      return;
-    }
+    if (isOpeningCamera) return;
+    setIsOpeningCamera(true);
     try {
+      if ((await ensureCameraPermission()) === "denied") {
+        setIssue("denied");
+        return;
+      }
       const blob = await takeSystemPhoto();
       if (blob) onCapture(blob);
     } catch {
-      setIssue("unavailable");
+      nativeCameraRef.current?.click();
+    } finally {
+      setIsOpeningCamera(false);
     }
   }
 
@@ -262,8 +266,11 @@ export function CameraCapture({ onCapture, onClose, onManual }: CameraCapturePro
                     : "h-12 w-full rounded-full px-5!"
                 }
                 onClick={() => void takePhoto()}
+                disabled={isOpeningCamera}
+                aria-busy={isOpeningCamera}
               >
-                <Camera /> Take photo
+                {isOpeningCamera ? <Loader2 className="animate-spin" aria-hidden /> : <Camera />}
+                {isOpeningCamera ? "Opening camera..." : "Take photo"}
               </Button>
               <Button
                 variant="outline"
