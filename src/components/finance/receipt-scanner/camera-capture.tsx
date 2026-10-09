@@ -5,6 +5,8 @@ import { ArrowLeft, Camera, CameraOff, Image as ImageIcon, Keyboard, Zap, ZapOff
 
 import { Button } from "@/components/ui/button";
 import { canvasToBlob, type CropRect } from "@/features/finance/lib/receipt-image";
+import { ensureCameraPermission, takeSystemPhoto } from "@/lib/capacitor/camera";
+import { isNativeApp } from "@/lib/capacitor/native-shell";
 
 interface CameraCaptureProps {
   onCapture: (blob: Blob, crop?: CropRect) => void;
@@ -12,7 +14,7 @@ interface CameraCaptureProps {
   onManual: () => void;
 }
 
-type CameraIssue = "denied" | "unavailable" | "insecure";
+type CameraIssue = "denied" | "unavailable" | "insecure" | "systemCamera";
 
 interface TorchCapabilities extends MediaTrackCapabilities {
   torch?: boolean;
@@ -27,7 +29,12 @@ const FRAME_MARGIN = 0.03;
 const CAMERA_ISSUE_MESSAGES: Record<CameraIssue, { title: string; message: string }> = {
   denied: {
     title: "Camera access denied",
-    message: "Allow camera access in your browser or app settings, or choose a photo from your gallery.",
+    message:
+      "Tap Allow camera to try again. If no prompt appears, enable Camera in your phone's Settings > Apps > AXIOS OS > Permissions.",
+  },
+  systemCamera: {
+    title: "Use your phone camera",
+    message: "Tap Take photo to open your phone's camera, then confirm the picture.",
   },
   unavailable: {
     title: "Camera unavailable",
@@ -76,18 +83,22 @@ export function CameraCapture({ onCapture, onClose, onManual }: CameraCapturePro
   const [hasTorch, setHasTorch] = useState(false);
   const [isTorchOn, setIsTorchOn] = useState(false);
   const [isCapturing, setIsCapturing] = useState(false);
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     let isCancelled = false;
     let stream: MediaStream | null = null;
 
     async function start() {
-      if (!window.isSecureContext) {
-        setIssue("insecure");
+      const permission = await ensureCameraPermission();
+      if (isCancelled) return;
+      if (permission === "denied") {
+        setIssue("denied");
         return;
       }
-      if (!navigator.mediaDevices?.getUserMedia) {
-        setIssue("unavailable");
+      const isNative = permission === "granted";
+      if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
+        setIssue(isNative ? "systemCamera" : window.isSecureContext ? "unavailable" : "insecure");
         return;
       }
       try {
@@ -115,7 +126,8 @@ export function CameraCapture({ onCapture, onClose, onManual }: CameraCapturePro
       } catch (e) {
         if (isCancelled) return;
         const name = e instanceof DOMException ? e.name : "";
-        setIssue(name === "NotAllowedError" || name === "SecurityError" ? "denied" : "unavailable");
+        if (name === "NotAllowedError" || name === "SecurityError") setIssue("denied");
+        else setIssue(isNative ? "systemCamera" : "unavailable");
       }
     }
 
@@ -125,7 +137,30 @@ export function CameraCapture({ onCapture, onClose, onManual }: CameraCapturePro
       stream?.getTracks().forEach((t) => t.stop());
       trackRef.current = null;
     };
-  }, []);
+  }, [attempt]);
+
+  function retryPermission() {
+    setIssue(null);
+    setIsReady(false);
+    setAttempt((n) => n + 1);
+  }
+
+  async function takePhoto() {
+    if (!isNativeApp()) {
+      nativeCameraRef.current?.click();
+      return;
+    }
+    if ((await ensureCameraPermission()) === "denied") {
+      setIssue("denied");
+      return;
+    }
+    try {
+      const blob = await takeSystemPhoto();
+      if (blob) onCapture(blob);
+    } catch {
+      setIssue("unavailable");
+    }
+  }
 
   async function toggleTorch() {
     const track = trackRef.current;
@@ -214,7 +249,20 @@ export function CameraCapture({ onCapture, onClose, onManual }: CameraCapturePro
               <p className="mt-2! text-sm leading-relaxed text-white/70">{issueCopy.message}</p>
             </div>
             <div className="mt-2! flex w-full max-w-xs flex-col gap-3">
-              <Button className="h-12 w-full rounded-full px-5!" onClick={() => nativeCameraRef.current?.click()}>
+              {issue === "denied" && (
+                <Button className="h-12 w-full rounded-full px-5!" onClick={retryPermission}>
+                  <Camera /> Allow camera
+                </Button>
+              )}
+              <Button
+                variant={issue === "denied" ? "outline" : "default"}
+                className={
+                  issue === "denied"
+                    ? "h-12 w-full rounded-full border-white/20 bg-white/5 px-5! text-white hover:bg-white/10"
+                    : "h-12 w-full rounded-full px-5!"
+                }
+                onClick={() => void takePhoto()}
+              >
                 <Camera /> Take photo
               </Button>
               <Button
