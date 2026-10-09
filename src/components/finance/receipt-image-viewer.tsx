@@ -44,7 +44,7 @@ export function ReceiptImageViewer({ path, onClose }: ReceiptImageViewerProps) {
       role="dialog"
       aria-modal="true"
       aria-label="Receipt image"
-      className="fixed inset-0 z-[80] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-[80] flex items-center justify-center bg-black/80 p-4! backdrop-blur-sm"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}

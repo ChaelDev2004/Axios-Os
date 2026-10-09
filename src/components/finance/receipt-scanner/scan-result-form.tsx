@@ -36,11 +36,13 @@ type FieldErrors = Partial<Record<keyof ReceiptScanFormInput, string>>;
 
 const PAYMENT_METHODS = Object.entries(PAYMENT_METHOD_LABELS) as [PaymentMethod, string][];
 
-const inputStyle = {
-  marginTop: 4,
-  borderColor: "rgba(255,255,255,0.1)",
-  background: "rgba(255,255,255,0.05)",
-};
+const INPUT_CLASS = "mt-2! h-11 rounded-xl border-white/10 bg-white/5 px-4!";
+const FIELD_LABEL_CLASS = "text-xs font-medium text-muted-foreground";
+const FIELD_ERROR_CLASS = "mt-1.5! text-xs text-rose-300";
+const CHIP_CLASS =
+  "min-h-10 rounded-full border px-4! text-sm transition-colors focus-visible:ring-2 focus-visible:ring-indigo-400/70 focus-visible:outline-none";
+const CHIP_IDLE_CLASS = "border-white/10 bg-white/5 text-muted-foreground hover:bg-white/10";
+const CHIP_ACTIVE_CLASS = "border-indigo-400/50 bg-indigo-500/20 text-white";
 
 function defaultNotes(category: string, merchant: string | null): string {
   return merchant ? `${category} from ${merchant}` : "";
@@ -136,24 +138,24 @@ export function ScanResultForm({
   return (
     <form onSubmit={submit} className="flex h-full flex-col" noValidate>
       <header
-        className="flex items-center gap-2 border-b border-white/10 px-3 pb-3"
+        className="flex items-center gap-3 border-b border-white/10 px-4! pb-3!"
         style={{ paddingTop: "max(12px, env(safe-area-inset-top))" }}
       >
         <button
           type="button"
           onClick={onBack}
           aria-label="Close scanner"
-          className="flex size-11 items-center justify-center rounded-full transition-colors hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-indigo-400/70 focus-visible:outline-none"
+          className="flex size-11 shrink-0 items-center justify-center rounded-full transition-colors hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-indigo-400/70 focus-visible:outline-none"
         >
           <ArrowLeft className="size-5" />
         </button>
         <div className="min-w-0">
           <div className="axion-kicker">{isScanned ? "Scan result" : "Manual entry"}</div>
-          <h2 className="truncate text-lg font-semibold">Review transaction</h2>
+          <h2 className="mt-0.5! truncate text-lg font-semibold">Review transaction</h2>
         </div>
         {isScanned ? (
           <span
-            className={`ml-auto shrink-0 rounded-full border px-2.5 py-1 text-xs font-medium ${confidenceTone(parsed.confidence)}`}
+            className={`ml-auto! shrink-0 rounded-full border px-3! py-1! text-xs font-medium ${confidenceTone(parsed.confidence)}`}
             title="OCR confidence"
           >
             {parsed.confidence}% confidence
@@ -161,12 +163,16 @@ export function ScanResultForm({
         ) : null}
       </header>
 
-      <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
-        <div className="mx-auto flex w-full max-w-xl flex-col gap-5">
+      <div className="min-h-0 flex-1 overflow-y-auto px-4! py-5! sm:px-6!">
+        <div className="mx-auto! flex w-full max-w-xl flex-col gap-6">
           {previewUrl ? (
-            <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/5">
+            <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-2!">
               {/* eslint-disable-next-line @next/next/no-img-element -- local blob preview */}
-              <img src={previewUrl} alt="Receipt preview" className="mx-auto block max-h-56 w-auto object-contain" />
+              <img
+                src={previewUrl}
+                alt="Receipt preview"
+                className="mx-auto! block max-h-56 w-auto rounded-xl object-contain"
+              />
             </div>
           ) : null}
 
@@ -175,17 +181,17 @@ export function ScanResultForm({
               {warnings.map((w) => (
                 <li
                   key={w}
-                  className="flex items-start gap-2 rounded-xl border border-amber-400/20 bg-amber-500/10 px-3 py-2 text-sm text-amber-200"
+                  className="flex items-start gap-2.5 rounded-xl border border-amber-400/20 bg-amber-500/10 px-3.5! py-2.5! text-sm leading-snug text-amber-200"
                 >
-                  <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden />
+                  <AlertTriangle className="mt-0.5! size-4 shrink-0" aria-hidden />
                   {w}
                 </li>
               ))}
             </ul>
           ) : null}
 
-          <div>
-            <Label htmlFor="scan-amount" className="text-xs text-muted-foreground">
+          <section>
+            <Label htmlFor="scan-amount" className={FIELD_LABEL_CLASS}>
               Amount (₱)
             </Label>
             <Input
@@ -197,18 +203,17 @@ export function ScanResultForm({
               placeholder="0.00"
               aria-invalid={Boolean(errors.amount)}
               aria-describedby={errors.amount ? "scan-amount-error" : undefined}
-              className="h-12 text-2xl font-semibold tabular-nums"
-              style={inputStyle}
+              className={`${INPUT_CLASS} h-14 text-2xl font-semibold tabular-nums`}
             />
             {errors.amount ? (
-              <p id="scan-amount-error" className="mt-1 text-xs text-rose-300">
+              <p id="scan-amount-error" className={FIELD_ERROR_CLASS}>
                 {errors.amount}
               </p>
             ) : null}
             {amountChoices.length > 1 ? (
-              <div className="mt-2">
-                <p className="text-xs text-muted-foreground">Possible amounts</p>
-                <div className="mt-1 flex flex-wrap gap-2" role="group" aria-label="Possible amounts">
+              <div className="mt-3!">
+                <p className={FIELD_LABEL_CLASS}>Possible amounts</p>
+                <div className="mt-2! flex flex-wrap gap-2" role="group" aria-label="Possible amounts">
                   {amountChoices.map((choice) => {
                     const isSelected = Number(values.amount) === choice;
                     return (
@@ -217,11 +222,7 @@ export function ScanResultForm({
                         type="button"
                         aria-pressed={isSelected}
                         onClick={() => update("amount", choice.toFixed(2))}
-                        className={`min-h-9 rounded-full border px-3 text-sm tabular-nums transition-colors focus-visible:ring-2 focus-visible:ring-indigo-400/70 focus-visible:outline-none ${
-                          isSelected
-                            ? "border-indigo-400/50 bg-indigo-500/20 text-white"
-                            : "border-white/10 bg-white/5 text-muted-foreground hover:bg-white/10"
-                        }`}
+                        className={`${CHIP_CLASS} tabular-nums ${isSelected ? CHIP_ACTIVE_CLASS : CHIP_IDLE_CLASS}`}
                       >
                         {formatPhp(choice)}
                       </button>
@@ -230,13 +231,13 @@ export function ScanResultForm({
                 </div>
               </div>
             ) : null}
-          </div>
+          </section>
 
-          <div>
-            <p className="text-xs text-muted-foreground" id="scan-type-label">
+          <section>
+            <p className={FIELD_LABEL_CLASS} id="scan-type-label">
               Transaction type
             </p>
-            <div className="mt-1 grid grid-cols-2 gap-2" role="group" aria-labelledby="scan-type-label">
+            <div className="mt-2! grid grid-cols-2 gap-2" role="group" aria-labelledby="scan-type-label">
               {(["expense", "income"] as const).map((t) => {
                 const isActive = values.type === t;
                 return (
@@ -245,12 +246,12 @@ export function ScanResultForm({
                     type="button"
                     aria-pressed={isActive}
                     onClick={() => changeType(t)}
-                    className={`min-h-11 rounded-full border text-sm font-medium capitalize transition-colors focus-visible:ring-2 focus-visible:ring-indigo-400/70 focus-visible:outline-none ${
+                    className={`min-h-11 rounded-full border px-4! text-sm font-medium capitalize transition-colors focus-visible:ring-2 focus-visible:ring-indigo-400/70 focus-visible:outline-none ${
                       isActive
                         ? t === "income"
                           ? "border-emerald-400/40 bg-emerald-500/15 text-emerald-300"
                           : "border-rose-400/40 bg-rose-500/15 text-rose-300"
-                        : "border-white/10 bg-white/5 text-muted-foreground hover:bg-white/10"
+                        : CHIP_IDLE_CLASS
                     }`}
                   >
                     {t}
@@ -258,17 +259,17 @@ export function ScanResultForm({
                 );
               })}
             </div>
-          </div>
+          </section>
 
-          <div>
-            <p className="text-xs text-muted-foreground">Category</p>
+          <section>
+            <p className={FIELD_LABEL_CLASS}>Category</p>
             <CategoryPicker type={values.type} value={values.category} onChange={changeCategory} />
-            {errors.category ? <p className="mt-1 text-xs text-rose-300">{errors.category}</p> : null}
-          </div>
+            {errors.category ? <p className={FIELD_ERROR_CLASS}>{errors.category}</p> : null}
+          </section>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <section className="grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-4">
             <div>
-              <Label htmlFor="scan-merchant" className="text-xs text-muted-foreground">
+              <Label htmlFor="scan-merchant" className={FIELD_LABEL_CLASS}>
                 Merchant
               </Label>
               <Input
@@ -278,12 +279,12 @@ export function ScanResultForm({
                 onChange={(e) => update("merchant", e.target.value)}
                 placeholder="Store or payer name"
                 aria-invalid={Boolean(errors.merchant)}
-                style={inputStyle}
+                className={INPUT_CLASS}
               />
-              {errors.merchant ? <p className="mt-1 text-xs text-rose-300">{errors.merchant}</p> : null}
+              {errors.merchant ? <p className={FIELD_ERROR_CLASS}>{errors.merchant}</p> : null}
             </div>
             <div>
-              <Label htmlFor="scan-date" className="text-xs text-muted-foreground">
+              <Label htmlFor="scan-date" className={FIELD_LABEL_CLASS}>
                 Date
               </Label>
               <Input
@@ -292,17 +293,17 @@ export function ScanResultForm({
                 value={values.date}
                 onChange={(e) => update("date", e.target.value)}
                 aria-invalid={Boolean(errors.date)}
-                style={inputStyle}
+                className={INPUT_CLASS}
               />
-              {errors.date ? <p className="mt-1 text-xs text-rose-300">{errors.date}</p> : null}
+              {errors.date ? <p className={FIELD_ERROR_CLASS}>{errors.date}</p> : null}
             </div>
-          </div>
+          </section>
 
-          <div>
-            <p className="text-xs text-muted-foreground" id="scan-payment-label">
+          <section>
+            <p className={FIELD_LABEL_CLASS} id="scan-payment-label">
               Payment method
             </p>
-            <div className="mt-1 flex flex-wrap gap-2" role="group" aria-labelledby="scan-payment-label">
+            <div className="mt-2! flex flex-wrap gap-2" role="group" aria-labelledby="scan-payment-label">
               {PAYMENT_METHODS.map(([id, label]) => {
                 const isActive = values.paymentMethod === id;
                 return (
@@ -311,21 +312,17 @@ export function ScanResultForm({
                     type="button"
                     aria-pressed={isActive}
                     onClick={() => update("paymentMethod", id)}
-                    className={`min-h-9 rounded-full border px-3 text-sm transition-colors focus-visible:ring-2 focus-visible:ring-indigo-400/70 focus-visible:outline-none ${
-                      isActive
-                        ? "border-indigo-400/50 bg-indigo-500/20 text-white"
-                        : "border-white/10 bg-white/5 text-muted-foreground hover:bg-white/10"
-                    }`}
+                    className={`${CHIP_CLASS} ${isActive ? CHIP_ACTIVE_CLASS : CHIP_IDLE_CLASS}`}
                   >
                     {label}
                   </button>
                 );
               })}
             </div>
-          </div>
+          </section>
 
-          <div>
-            <Label htmlFor="scan-notes" className="text-xs text-muted-foreground">
+          <section>
+            <Label htmlFor="scan-notes" className={FIELD_LABEL_CLASS}>
               Notes
             </Label>
             <Input
@@ -335,18 +332,18 @@ export function ScanResultForm({
               onChange={(e) => update("notes", e.target.value)}
               placeholder="Optional note"
               aria-invalid={Boolean(errors.notes)}
-              style={inputStyle}
+              className={INPUT_CLASS}
             />
-            {errors.notes ? <p className="mt-1 text-xs text-rose-300">{errors.notes}</p> : null}
-          </div>
+            {errors.notes ? <p className={FIELD_ERROR_CLASS}>{errors.notes}</p> : null}
+          </section>
 
           {parsed?.items.length ? (
-            <div className="rounded-xl border border-white/10 bg-white/[0.03]">
+            <section className="rounded-xl border border-white/10 bg-white/[0.03]">
               <button
                 type="button"
                 aria-expanded={isItemsOpen}
                 onClick={() => setIsItemsOpen((v) => !v)}
-                className="flex min-h-11 w-full items-center justify-between px-3 text-sm font-medium focus-visible:ring-2 focus-visible:ring-indigo-400/70 focus-visible:outline-none rounded-xl"
+                className="flex min-h-12 w-full items-center justify-between rounded-xl px-4! text-sm font-medium focus-visible:ring-2 focus-visible:ring-indigo-400/70 focus-visible:outline-none"
               >
                 Detected items ({parsed.items.length})
                 <ChevronDown
@@ -355,7 +352,7 @@ export function ScanResultForm({
                 />
               </button>
               {isItemsOpen ? (
-                <ul className="flex flex-col gap-1 px-3 pb-3 text-sm text-muted-foreground">
+                <ul className="flex flex-col gap-2 border-t border-white/10 px-4! py-3! text-sm text-muted-foreground">
                   {parsed.items.map((item, i) => (
                     <li key={`${item.name}-${i}`} className="flex justify-between gap-3">
                       <span className="truncate">{item.name}</span>
@@ -364,22 +361,22 @@ export function ScanResultForm({
                   ))}
                 </ul>
               ) : null}
-            </div>
+            </section>
           ) : null}
 
           {previewUrl ? (
-            <label className="flex min-h-11 cursor-pointer items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-sm">
+            <label className="flex min-h-12 cursor-pointer items-center justify-between gap-4 rounded-xl border border-white/10 bg-white/[0.03] px-4! py-3! text-sm">
               <span>
                 Attach receipt image
                 {!isOnline ? (
-                  <span className="block text-xs text-muted-foreground">
+                  <span className="mt-1! block text-xs text-muted-foreground">
                     Unavailable offline. The transaction will still be saved.
                   </span>
                 ) : null}
               </span>
               <input
                 type="checkbox"
-                className="size-5 accent-indigo-500"
+                className="size-5 shrink-0 accent-indigo-500"
                 checked={canAttach && shouldAttachImage}
                 disabled={!canAttach}
                 onChange={(e) => setShouldAttachImage(e.target.checked)}
@@ -390,14 +387,14 @@ export function ScanResultForm({
       </div>
 
       <footer
-        className="flex gap-2 border-t border-white/10 px-4 pt-3"
+        className="border-t border-white/10 px-4! pt-3! sm:px-6!"
         style={{ paddingBottom: "max(16px, env(safe-area-inset-bottom))" }}
       >
-        <div className="mx-auto flex w-full max-w-xl gap-2">
+        <div className="mx-auto! flex w-full max-w-xl gap-3">
           <Button
             type="button"
             variant="outline"
-            className="h-12 flex-1 rounded-full"
+            className="h-12 flex-1 rounded-full px-4!"
             onClick={onRetake}
             disabled={isSaving}
           >
@@ -405,7 +402,7 @@ export function ScanResultForm({
           </Button>
           <Button
             type="submit"
-            className="h-12 flex-[1.4] rounded-full text-white"
+            className="h-12 flex-[1.4] rounded-full px-4! text-white"
             style={{ background: "linear-gradient(to right, #6366f1, #d946ef)" }}
             disabled={isSaving}
           >

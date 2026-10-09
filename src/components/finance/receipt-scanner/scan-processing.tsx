@@ -13,7 +13,7 @@ export function ScanProcessing({ previewUrl, label }: ScanProcessingProps) {
   const isDetected = label === "Amount detected";
 
   return (
-    <div className="flex h-full flex-col items-center justify-center gap-6 bg-black px-6 text-white">
+    <div className="flex h-full flex-col items-center justify-center gap-6 bg-black px-6! text-white">
       <div className="relative w-[min(72vw,340px)] overflow-hidden rounded-2xl border border-white/10 bg-white/5">
         {previewUrl ? (
           // eslint-disable-next-line @next/next/no-img-element -- local blob preview

@@ -169,7 +169,7 @@ export function CameraCapture({ onCapture, onClose, onManual }: CameraCapturePro
   return (
     <div className="relative flex h-full flex-col bg-black text-white">
       <header
-        className="relative z-10 flex items-center justify-between gap-2 px-3 pb-2"
+        className="relative z-10 flex items-center justify-between gap-2 px-3! pb-3!"
         style={{ paddingTop: "max(12px, env(safe-area-inset-top))" }}
       >
         <button
@@ -207,30 +207,30 @@ export function CameraCapture({ onCapture, onClose, onManual }: CameraCapturePro
         />
 
         {issueCopy ? (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 px-6 text-center" role="alert">
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-5 px-6! text-center" role="alert">
             <CameraOff className="size-10 text-white/70" aria-hidden />
-            <div>
+            <div className="max-w-sm">
               <p className="text-lg font-semibold">{issueCopy.title}</p>
-              <p className="mt-1 text-sm text-white/70">{issueCopy.message}</p>
+              <p className="mt-2! text-sm leading-relaxed text-white/70">{issueCopy.message}</p>
             </div>
-            <div className="flex w-full max-w-xs flex-col gap-2">
-              <Button className="h-11 w-full rounded-full" onClick={() => nativeCameraRef.current?.click()}>
+            <div className="mt-2! flex w-full max-w-xs flex-col gap-3">
+              <Button className="h-12 w-full rounded-full px-5!" onClick={() => nativeCameraRef.current?.click()}>
                 <Camera /> Take photo
               </Button>
               <Button
                 variant="outline"
-                className="h-11 w-full rounded-full border-white/20 bg-white/5 text-white hover:bg-white/10"
+                className="h-12 w-full rounded-full border-white/20 bg-white/5 px-5! text-white hover:bg-white/10"
                 onClick={() => galleryRef.current?.click()}
               >
                 <ImageIcon /> Choose from gallery
               </Button>
-              <Button variant="ghost" className="h-11 w-full rounded-full text-white hover:bg-white/10" onClick={onManual}>
+              <Button variant="ghost" className="h-12 w-full rounded-full px-5! text-white hover:bg-white/10" onClick={onManual}>
                 <Keyboard /> Enter manually
               </Button>
             </div>
           </div>
         ) : (
-          <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-4 px-6">
+          <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-5 px-6!">
             <div
               ref={frameRef}
               className="relative aspect-[3/4.2] w-[min(82vw,420px)] max-h-[68%] rounded-2xl"
@@ -240,7 +240,7 @@ export function CameraCapture({ onCapture, onClose, onManual }: CameraCapturePro
                 <span key={pos} className={`absolute size-8 border-white ${pos}`} aria-hidden />
               ))}
             </div>
-            <p className="relative rounded-full bg-black/60 px-4 py-1.5 text-sm">
+            <p className="relative rounded-full bg-black/60 px-4! py-2! text-sm">
               {isReady ? "Position the receipt inside the frame" : "Starting camera..."}
             </p>
           </div>
@@ -248,13 +248,13 @@ export function CameraCapture({ onCapture, onClose, onManual }: CameraCapturePro
       </div>
 
       <footer
-        className="relative z-10 flex items-center justify-around gap-4 px-6 pt-4"
+        className="relative z-10 flex items-center justify-around gap-4 px-6! pt-5!"
         style={{ paddingBottom: "max(20px, env(safe-area-inset-bottom))" }}
       >
         <button
           type="button"
           onClick={() => galleryRef.current?.click()}
-          className="flex w-16 flex-col items-center gap-1 text-xs text-white/80 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 rounded-lg"
+          className="flex w-16 flex-col items-center gap-1.5 rounded-lg py-1! text-xs text-white/80 transition-colors hover:text-white focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:outline-none"
         >
           <span className="flex size-11 items-center justify-center rounded-full bg-white/10">
             <ImageIcon className="size-5" />
@@ -273,7 +273,7 @@ export function CameraCapture({ onCapture, onClose, onManual }: CameraCapturePro
         <button
           type="button"
           onClick={onManual}
-          className="flex w-16 flex-col items-center gap-1 text-xs text-white/80 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 rounded-lg"
+          className="flex w-16 flex-col items-center gap-1.5 rounded-lg py-1! text-xs text-white/80 transition-colors hover:text-white focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:outline-none"
         >
           <span className="flex size-11 items-center justify-center rounded-full bg-white/10">
             <Keyboard className="size-5" />

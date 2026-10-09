@@ -14,7 +14,7 @@ interface ScanErrorProps {
 export function ScanError({ error, previewUrl, onClose, onRetake, onManual }: ScanErrorProps) {
   return (
     <div className="flex h-full flex-col bg-black text-white">
-      <header className="px-3 pb-2" style={{ paddingTop: "max(12px, env(safe-area-inset-top))" }}>
+      <header className="px-3! pb-3!" style={{ paddingTop: "max(12px, env(safe-area-inset-top))" }}>
         <button
           type="button"
           onClick={onClose}
@@ -24,7 +24,7 @@ export function ScanError({ error, previewUrl, onClose, onRetake, onManual }: Sc
           <ArrowLeft className="size-5" />
         </button>
       </header>
-      <div className="flex flex-1 flex-col items-center justify-center gap-5 px-6 text-center" role="alert">
+      <div className="flex flex-1 flex-col items-center justify-center gap-5 px-6! text-center" role="alert">
         {previewUrl ? (
           // eslint-disable-next-line @next/next/no-img-element -- local blob preview
           <img src={previewUrl} alt="Captured receipt" className="max-h-[32vh] rounded-xl border border-white/10 object-contain opacity-70" />
@@ -32,18 +32,18 @@ export function ScanError({ error, previewUrl, onClose, onRetake, onManual }: Sc
         <AlertCircle className="size-10 text-amber-300" aria-hidden />
         <div className="max-w-sm">
           <p className="text-lg font-semibold">{error.title}</p>
-          <p className="mt-1 text-sm text-white/70">{error.message}</p>
+          <p className="mt-2! text-sm leading-relaxed text-white/70">{error.message}</p>
         </div>
         <div
-          className="flex w-full max-w-xs flex-col gap-2"
+          className="mt-2! flex w-full max-w-xs flex-col gap-3"
           style={{ paddingBottom: "max(16px, env(safe-area-inset-bottom))" }}
         >
-          <Button className="h-12 w-full rounded-full" onClick={onRetake}>
+          <Button className="h-12 w-full rounded-full px-5!" onClick={onRetake}>
             <Camera /> Retake Photo
           </Button>
           <Button
             variant="outline"
-            className="h-12 w-full rounded-full border-white/20 bg-white/5 text-white hover:bg-white/10"
+            className="h-12 w-full rounded-full border-white/20 bg-white/5 px-5! text-white hover:bg-white/10"
             onClick={onManual}
           >
             <Keyboard /> Enter Amount Manually

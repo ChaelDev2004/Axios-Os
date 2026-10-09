@@ -31,7 +31,7 @@ export function ScanSuccess({ transaction, onDone }: ScanSuccessProps) {
     <button
       type="button"
       onClick={onDone}
-      className="flex h-full w-full flex-col items-center justify-center gap-3 bg-black px-6 text-center text-white focus-visible:outline-none"
+      className="flex h-full w-full flex-col items-center justify-center gap-3 bg-black px-6! text-center text-white focus-visible:outline-none"
       aria-label="Transaction added. Return to dashboard"
     >
       <motion.span
@@ -41,7 +41,7 @@ export function ScanSuccess({ transaction, onDone }: ScanSuccessProps) {
       >
         <CheckCircle2 className="size-16 text-emerald-400" aria-hidden />
       </motion.span>
-      <p className="text-lg font-semibold" role="status">
+      <p className="mt-2! text-lg font-semibold" role="status">
         Transaction Added
       </p>
       <p className="text-3xl font-semibold tabular-nums">{formatPhp(Number(transaction.amount))}</p>
