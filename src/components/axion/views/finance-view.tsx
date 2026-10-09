@@ -1,26 +1,17 @@
 "use client";
 
-import { useCallback, useMemo, useState, type CSSProperties, type ReactNode } from "react";
+import { useCallback, useMemo, useState, type CSSProperties } from "react";
+import dynamic from "next/dynamic";
 import {
   Banknote,
-  Briefcase,
-  Car,
-  Coffee,
-  Gift,
-  GraduationCap,
-  HeartPulse,
-  Home,
-  Laptop,
-  MoreHorizontal,
   Pencil,
   PiggyBank,
   Plus,
+  ReceiptText,
+  ScanLine,
   ShoppingBag,
-  Sparkles,
   Trash2,
-  Utensils,
   Wallet,
-  Wifi,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -43,8 +34,32 @@ import {
 import { formatPhp } from "@/features/dashboard/lib/format";
 import { areaFill, defaultDoughnutOptions, defaultLineOptions, Doughnut, Line } from "@/lib/chartjs";
 import { EmptyState } from "@/components/axion/views/empty-state";
-import type { Transaction, TransactionType } from "@/features/auth/types/database.types";
+import {
+  CategoryIconBadge,
+  CategoryPicker,
+  categoryBadgeStyle,
+} from "@/components/finance/category-picker";
+import { CATEGORIES, resolveCategory } from "@/features/finance/lib/categories";
+import { useReceiptScannerStore } from "@/features/finance/stores/receipt-scanner.store";
+import {
+  PAYMENT_METHOD_LABELS,
+  type Transaction,
+  type TransactionType,
+} from "@/features/auth/types/database.types";
 import { APP_LOGO_URL } from "@/lib/site-branding-defaults";
+
+const ReceiptScannerDialog = dynamic(
+  () =>
+    import("@/components/finance/receipt-scanner/receipt-scanner-dialog").then(
+      (m) => m.ReceiptScannerDialog
+    ),
+  { ssr: false }
+);
+
+const ReceiptImageViewer = dynamic(
+  () => import("@/components/finance/receipt-image-viewer").then((m) => m.ReceiptImageViewer),
+  { ssr: false }
+);
 
 function ensureBrowserNotifyPermission() {
   if (typeof window === "undefined" || !("Notification" in window)) return;
@@ -61,57 +76,6 @@ function showBrowserNotify(title: string, body: string, tag = "axion-finance") {
   } catch {
     /* ignore */
   }
-}
-
-type CategoryDef = {
-  id: string;
-  label: string;
-  icon: ReactNode;
-  color: string;
-  types: TransactionType[];
-};
-
-const CATEGORIES: CategoryDef[] = [
-  { id: "salary", label: "Salary", icon: <Banknote style={{ height: 16, width: 16 }} />, color: "#34d399", types: ["income"] },
-  { id: "freelance", label: "Freelance", icon: <Laptop style={{ height: 16, width: 16 }} />, color: "#60a5fa", types: ["income"] },
-  { id: "business", label: "Business", icon: <Briefcase style={{ height: 16, width: 16 }} />, color: "#818cf8", types: ["income"] },
-  { id: "gift", label: "Gift", icon: <Gift style={{ height: 16, width: 16 }} />, color: "#f472b6", types: ["income", "expense"] },
-  { id: "food", label: "Food", icon: <Utensils style={{ height: 16, width: 16 }} />, color: "#fbbf24", types: ["expense"] },
-  { id: "coffee", label: "Coffee", icon: <Coffee style={{ height: 16, width: 16 }} />, color: "#d6b48c", types: ["expense"] },
-  { id: "transport", label: "Transport", icon: <Car style={{ height: 16, width: 16 }} />, color: "#38bdf8", types: ["expense"] },
-  { id: "shopping", label: "Shopping", icon: <ShoppingBag style={{ height: 16, width: 16 }} />, color: "#c084fc", types: ["expense"] },
-  { id: "home", label: "Home", icon: <Home style={{ height: 16, width: 16 }} />, color: "#a78bfa", types: ["expense"] },
-  { id: "tools", label: "Tools", icon: <Wifi style={{ height: 16, width: 16 }} />, color: "#818cf8", types: ["expense"] },
-  { id: "health", label: "Health", icon: <HeartPulse style={{ height: 16, width: 16 }} />, color: "#fb7185", types: ["expense"] },
-  { id: "education", label: "Education", icon: <GraduationCap style={{ height: 16, width: 16 }} />, color: "#2dd4bf", types: ["expense"] },
-  { id: "savings", label: "Savings", icon: <PiggyBank style={{ height: 16, width: 16 }} />, color: "#4ade80", types: ["expense", "income"] },
-  { id: "other", label: "Other", icon: <MoreHorizontal style={{ height: 16, width: 16 }} />, color: "#94a3b8", types: ["income", "expense"] },
-];
-
-function normalizeCategoryKey(value: string | null | undefined): string {
-  return (value ?? "").trim().toLowerCase();
-}
-
-function resolveCategory(name: string | null | undefined): CategoryDef {
-  const key = normalizeCategoryKey(name);
-  if (!key) {
-    return {
-      id: "uncategorized",
-      label: "Uncategorized",
-      icon: <Sparkles style={{ height: 16, width: 16 }} />,
-      color: "#94a3b8",
-      types: ["income", "expense"],
-    };
-  }
-  const found = CATEGORIES.find((c) => c.id === key || c.label.toLowerCase() === key);
-  if (found) return found;
-  return {
-    id: key,
-    label: name!.trim(),
-    icon: <Wallet style={{ height: 16, width: 16 }} />,
-    color: "#64748b",
-    types: ["income", "expense"],
-  };
 }
 
 /* ---------------------------------- style tokens ---------------------------------- */
@@ -292,75 +256,6 @@ const s: Record<string, CSSProperties> = {
   },
 };
 
-function categoryBadgeStyle(color: string, size: "sm" | "md"): CSSProperties {
-  return {
-    display: "inline-flex",
-    flexShrink: 0,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 12,
-    height: size === "sm" ? 32 : 40,
-    width: size === "sm" ? 32 : 40,
-    background: `${color}22`,
-    border: `1px solid ${color}44`,
-    color,
-  };
-}
-
-function CategoryIconBadge({ category, size = "md" }: { category: CategoryDef; size?: "sm" | "md" }) {
-  return <span style={categoryBadgeStyle(category.color, size)}>{category.icon}</span>;
-}
-
-function CategoryPicker({
-  type,
-  value,
-  onChange,
-}: {
-  type: TransactionType;
-  value: string;
-  onChange: (label: string) => void;
-}) {
-  const options = CATEGORIES.filter((c) => c.types.includes(type));
-
-  return (
-    <div
-      className="grid grid-cols-1 gap-2 min-[380px]:grid-cols-2 sm:grid-cols-[repeat(auto-fit,minmax(130px,1fr))]"
-      style={{
-        marginTop: 8,
-      }}
-    >
-      {options.map((c) => {
-        const selected =
-          normalizeCategoryKey(value) === c.id || normalizeCategoryKey(value) === c.label.toLowerCase();
-        return (
-          <button
-            key={c.id}
-            type="button"
-            onClick={() => onChange(c.label)}
-            className="flex min-w-0 items-center gap-2.5"
-            style={{
-              borderRadius: 12,
-              padding: "10px 12px",
-              textAlign: "left",
-              fontSize: 14,
-              cursor: "pointer",
-              border: selected ? "1px solid rgba(129,140,248,0.4)" : "1px solid rgba(255,255,255,0.08)",
-              background: selected ? "rgba(99,102,241,0.15)" : "rgba(255,255,255,0.03)",
-              color: selected ? "#fff" : "var(--muted-foreground)",
-              boxShadow: selected ? "0 0 0 1px rgba(129,140,248,0.25)" : "none",
-            }}
-          >
-            <CategoryIconBadge category={c} size="sm" />
-            <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontWeight: 500 }}>
-              {c.label}
-            </span>
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
 function groupIncomeExpenseByDay(transactions: Transaction[], days = 7) {
   const cashflow = groupCashflowByDay(transactions, days);
   const incomeMap = new Map(cashflow.map((b) => [b.date, 0]));
@@ -400,7 +295,11 @@ export function FinanceView() {
         : `−${amountLabel} logged under ${category}.`;
 
       showBrowserNotify(title, message, isIncome ? "axion-finance-income" : "axion-finance-expense");
-      toast.success(message);
+      toast.success(
+        tx.scan_source === "scanner"
+          ? `${isIncome ? "Income" : "Expense"} of ${amountLabel} added successfully.`
+          : message
+      );
 
       try {
         await createNotification.mutateAsync({
@@ -437,6 +336,10 @@ export function FinanceView() {
   const [description, setDescription] = useState("");
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [editing, setEditing] = useState<Transaction | null>(null);
+  const isScannerOpen = useReceiptScannerStore((st) => st.isOpen);
+  const openScanner = useReceiptScannerStore((st) => st.open);
+  const closeScanner = useReceiptScannerStore((st) => st.close);
+  const [receiptViewerPath, setReceiptViewerPath] = useState<string | null>(null);
 
   const income = sumIncome(transactions);
   const expense = sumExpense(transactions);
@@ -508,6 +411,28 @@ export function FinanceView() {
 
   return (
     <div className="axion-stack">
+      <div className="flex justify-stretch sm:justify-end">
+        <Button
+          className="h-12 w-full gap-2 rounded-full px-6 text-base text-white sm:w-auto"
+          style={{ background: "linear-gradient(to right, #6366f1, #d946ef)" }}
+          onClick={openScanner}
+        >
+          <ScanLine className="size-5" aria-hidden />
+          Scan Receipt
+        </Button>
+      </div>
+
+      {isScannerOpen ? (
+        <ReceiptScannerDialog
+          onClose={closeScanner}
+          onSave={(input) => createTx.mutateAsync(input)}
+        />
+      ) : null}
+
+      {receiptViewerPath ? (
+        <ReceiptImageViewer path={receiptViewerPath} onClose={() => setReceiptViewerPath(null)} />
+      ) : null}
+
       <div className="grid grid-cols-1 gap-4 min-[420px]:grid-cols-2 xl:grid-cols-4">
         {kpis.map((c) => (
           <div key={c.label} className="axion-card axion-card-glow">
@@ -759,8 +684,14 @@ export function FinanceView() {
                         <span style={s.ledgerTypeTag}>{tx.type}</span>
                       </div>
                       <div style={s.ledgerSub}>
-                        {tx.transaction_date.slice(0, 10)}
-                        {tx.description ? ` — ${tx.description}` : ""}
+                        {[
+                          tx.transaction_date.slice(0, 10),
+                          tx.merchant,
+                          tx.payment_method ? PAYMENT_METHOD_LABELS[tx.payment_method] : null,
+                          tx.description,
+                        ]
+                          .filter(Boolean)
+                          .join(" — ")}
                       </div>
                     </div>
                   </div>
@@ -773,6 +704,16 @@ export function FinanceView() {
                       {tx.type === "income" ? "+" : "−"}
                       {formatPhp(Number(tx.amount))}
                     </span>
+                    {tx.receipt_image_path ? (
+                      <button
+                        type="button"
+                        aria-label="View receipt"
+                        style={s.iconBtn}
+                        onClick={() => setReceiptViewerPath(tx.receipt_image_path)}
+                      >
+                        <ReceiptText style={{ height: 14, width: 14 }} />
+                      </button>
+                    ) : null}
                     <button type="button" aria-label="Edit" style={s.iconBtn} onClick={() => setEditing(tx)}>
                       <Pencil style={{ height: 14, width: 14 }} />
                     </button>

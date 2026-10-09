@@ -19,8 +19,14 @@ export interface InteractiveMenuItem {
   icon: IconComponentType;
 }
 
+export interface InteractiveMenuCenterAction extends InteractiveMenuItem {
+  onClick: () => void;
+}
+
 export interface InteractiveMenuProps {
   items?: InteractiveMenuItem[];
+  /** Raised action button rendered in the middle of the bar. */
+  centerAction?: InteractiveMenuCenterAction;
   accentColor?: string;
   /** Controlled active index. Pass `-1` for none. */
   activeIndex?: number;
@@ -40,6 +46,7 @@ const defaultAccentColor = "var(--component-active-color-default)";
 
 export function InteractiveMenu({
   items,
+  centerAction,
   accentColor,
   activeIndex: activeIndexProp,
   onItemSelect,
@@ -95,44 +102,70 @@ export function InteractiveMenu({
     return { "--component-active-color": activeColor } as CSSProperties;
   }, [accentColor]);
 
+  const renderItem = (item: InteractiveMenuItem, index: number) => {
+    const isActive = index === activeIndex;
+    const IconComponent = item.icon;
+
+    return (
+      <button
+        key={item.label}
+        type="button"
+        className={cn("menu__item", isActive && "active")}
+        onClick={() => handleItemClick(index)}
+        ref={(el) => {
+          itemRefs.current[index] = el;
+        }}
+        style={{ "--lineWidth": "0px" } as CSSProperties}
+        aria-current={isActive ? "page" : undefined}
+        aria-label={item.label}
+      >
+        <div className="menu__icon">
+          <IconComponent className="icon" aria-hidden />
+        </div>
+        <strong
+          className={cn("menu__text", isActive && "active")}
+          ref={(el) => {
+            textRefs.current[index] = el;
+          }}
+        >
+          {item.label}
+        </strong>
+      </button>
+    );
+  };
+
+  const splitIndex = Math.floor(finalItems.length / 2);
+  const CenterIcon = centerAction?.icon;
+
   return (
     <nav
-      className={cn("menu interactive-menu", className)}
+      className={cn("menu interactive-menu", centerAction && "menu--with-center", className)}
       role="navigation"
       aria-label="Primary"
       style={navStyle}
     >
-      {finalItems.map((item, index) => {
-        const isActive = index === activeIndex;
-        const IconComponent = item.icon;
-
-        return (
-          <button
-            key={item.label}
-            type="button"
-            className={cn("menu__item", isActive && "active")}
-            onClick={() => handleItemClick(index)}
-            ref={(el) => {
-              itemRefs.current[index] = el;
-            }}
-            style={{ "--lineWidth": "0px" } as CSSProperties}
-            aria-current={isActive ? "page" : undefined}
-            aria-label={item.label}
-          >
-            <div className="menu__icon">
-              <IconComponent className="icon" aria-hidden />
-            </div>
-            <strong
-              className={cn("menu__text", isActive && "active")}
-              ref={(el) => {
-                textRefs.current[index] = el;
-              }}
+      {centerAction && CenterIcon ? (
+        <>
+          <div className="menu__group">
+            {finalItems.slice(0, splitIndex).map((item, i) => renderItem(item, i))}
+          </div>
+          <div className="menu__center">
+            <button
+              type="button"
+              className="menu__center-btn"
+              onClick={centerAction.onClick}
+              aria-label={centerAction.label}
             >
-              {item.label}
-            </strong>
-          </button>
-        );
-      })}
+              <CenterIcon className="icon" aria-hidden />
+            </button>
+          </div>
+          <div className="menu__group">
+            {finalItems.slice(splitIndex).map((item, i) => renderItem(item, i + splitIndex))}
+          </div>
+        </>
+      ) : (
+        finalItems.map(renderItem)
+      )}
     </nav>
   );
 }

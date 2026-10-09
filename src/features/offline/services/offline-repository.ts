@@ -219,8 +219,17 @@ export async function deleteLocalTask(id: string): Promise<void> {
   });
 }
 
+type ScannerFields =
+  | "merchant"
+  | "payment_method"
+  | "scan_source"
+  | "receipt_image_path"
+  | "ocr_text"
+  | "ocr_confidence";
+
 export async function upsertLocalTransaction(
-  input: Omit<Transaction, "id" | "created_at"> & { id?: string; created_at?: string }
+  input: Omit<Transaction, "id" | "created_at" | ScannerFields> &
+    Partial<Pick<Transaction, ScannerFields>> & { id?: string; created_at?: string }
 ): Promise<Transaction> {
   const stamp = nowIso();
   const id = input.id ?? createOfflineId("txn");
@@ -233,6 +242,12 @@ export async function upsertLocalTransaction(
     category: input.category ?? null,
     description: input.description ?? null,
     transaction_date: input.transaction_date,
+    merchant: input.merchant ?? null,
+    payment_method: input.payment_method ?? null,
+    scan_source: input.scan_source ?? "manual",
+    receipt_image_path: input.receipt_image_path ?? null,
+    ocr_text: input.ocr_text ?? null,
+    ocr_confidence: input.ocr_confidence ?? null,
     created_at: existing?.created_at ?? input.created_at ?? stamp,
     _offline: createOfflineMeta({ dirty: true, deleted: false, updatedAt: stamp }),
   };

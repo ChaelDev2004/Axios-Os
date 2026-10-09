@@ -139,8 +139,18 @@ CREATE TABLE IF NOT EXISTS public.transactions (
   category TEXT,
   description TEXT,
   transaction_date DATE NOT NULL DEFAULT CURRENT_DATE,
+  merchant TEXT CHECK (merchant IS NULL OR char_length(merchant) <= 120),
+  payment_method TEXT CHECK (
+    payment_method IS NULL
+    OR payment_method IN ('cash', 'card', 'gcash', 'maya', 'bank_transfer', 'other')
+  ),
+  scan_source TEXT NOT NULL DEFAULT 'manual' CHECK (scan_source IN ('manual', 'scanner')),
+  receipt_image_path TEXT,
+  ocr_text TEXT CHECK (ocr_text IS NULL OR char_length(ocr_text) <= 20000),
+  ocr_confidence NUMERIC(5, 2) CHECK (ocr_confidence IS NULL OR (ocr_confidence >= 0 AND ocr_confidence <= 100)),
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+-- Receipt image bucket + storage policies: supabase/migrations/add_transaction_receipt_scanner.sql
 
 CREATE INDEX IF NOT EXISTS transactions_user_id_idx ON public.transactions (user_id);
 CREATE INDEX IF NOT EXISTS transactions_type_idx ON public.transactions (user_id, type);

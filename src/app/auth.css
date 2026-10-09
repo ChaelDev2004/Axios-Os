@@ -948,9 +948,70 @@ html.is-native-app .axion-topbar {
   }
 }
 
+.axion-bottom-nav .menu__group {
+  display: flex;
+  flex: 1 1 0;
+  min-width: 0;
+  align-items: flex-end;
+  gap: 0.1rem;
+}
+
+.axion-bottom-nav .menu__center {
+  position: relative;
+  flex: 0 0 3.75rem;
+  align-self: stretch;
+}
+
+.axion-bottom-nav .menu__center-btn {
+  position: absolute;
+  left: 50%;
+  bottom: 0.15rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  padding: 0;
+  border: 3px solid var(--component-bg);
+  border-radius: 999px;
+  background: linear-gradient(135deg, #6366f1, #d946ef);
+  color: #fff;
+  box-shadow: 0 10px 24px rgb(99 102 241 / 0.45);
+  cursor: pointer;
+  transform: translate(-50%, -0.9rem);
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.16s ease, box-shadow 0.16s ease, filter 0.16s ease;
+}
+
+.axion-bottom-nav .menu__center-btn:hover {
+  filter: brightness(1.08);
+}
+
+.axion-bottom-nav .menu__center-btn:active {
+  transform: translate(-50%, -0.9rem) scale(0.94);
+}
+
+.axion-bottom-nav .menu__center-btn:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 3px var(--component-bg),
+    0 0 0 6px var(--component-active-color-default),
+    0 10px 24px rgb(99 102 241 / 0.45);
+}
+
+.axion-bottom-nav .menu__center-btn .icon {
+  width: 1.5rem;
+  height: 1.5rem;
+  stroke-width: 2.2;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .axion-bottom-nav .menu__item.active .menu__icon {
     animation: none;
+  }
+
+  .axion-bottom-nav .menu__center-btn {
+    transition: none;
   }
 }
 
@@ -1182,7 +1243,7 @@ html.is-native-app .axion-topbar {
 }
 
 /* Buttons inside Axion — consistent padding */
-.axion button:not([class*="w-10"]):not([class*="w-11"]):not([class*="w-9"]):not(.axion-nav-item):not(.axion-fab):not(.axion-sidebar-footer-btn):not(.axion-bottom-nav-btn):not(.axion-topbar-btn):not(.menu__item):not(.vault-icon-btn) {
+.axion button:not([class*="w-10"]):not([class*="w-11"]):not([class*="w-9"]):not(.axion-nav-item):not(.axion-fab):not(.axion-sidebar-footer-btn):not(.axion-bottom-nav-btn):not(.axion-topbar-btn):not(.menu__item):not(.menu__center-btn):not(.vault-icon-btn) {
   min-height: 2.75rem;
   padding-left: 1.25rem;
   padding-right: 1.25rem;

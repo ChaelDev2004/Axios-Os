@@ -15,6 +15,7 @@ import {
   cacheTransactions,
 } from "@/features/offline/services/offline-repository";
 import { useConnectivityStore } from "@/features/offline/stores/connectivity.store";
+import { removeReceiptImage } from "@/features/finance/services/receipt-storage.service";
 import type { SyncQueueItem } from "@/features/offline/types";
 import type { Note, PomodoroSession, Task, Transaction } from "@/features/auth/types/database.types";
 
@@ -84,9 +85,14 @@ async function applyQueueItem(item: SyncQueueItem): Promise<void> {
 
   if (entity === "transactions") {
     if (operation === "DELETE") {
-      const { error } = await supabase.from("transactions").delete().eq("id", recordId);
+      const { data, error } = await supabase
+        .from("transactions")
+        .delete()
+        .eq("id", recordId)
+        .select("receipt_image_path");
       if (error) throw new Error(error.message);
       await offlineDb.transactions.delete(recordId);
+      void removeReceiptImage(data?.[0]?.receipt_image_path);
       return;
     }
     if (!payload) throw new Error("Missing transaction payload");

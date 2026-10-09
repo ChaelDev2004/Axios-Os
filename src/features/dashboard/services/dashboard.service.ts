@@ -48,6 +48,7 @@ import {
   upsertLocalTransaction,
 } from "@/features/offline/services/offline-repository";
 import { SyncService } from "@/features/offline/services/sync.service";
+import { removeReceiptImage } from "@/features/finance/services/receipt-storage.service";
 
 type ProjectInsert = Database["public"]["Tables"]["projects"]["Insert"];
 type ProjectUpdate = Database["public"]["Tables"]["projects"]["Update"];
@@ -549,9 +550,14 @@ export async function deleteTransaction(id: string): Promise<void> {
 
   try {
     const supabase = createClient();
-    const { error } = await supabase.from("transactions").delete().eq("id", id);
+    const { data, error } = await supabase
+      .from("transactions")
+      .delete()
+      .eq("id", id)
+      .select("receipt_image_path");
     throwOnError(error);
     await removeCachedTransaction(id);
+    void removeReceiptImage(data?.[0]?.receipt_image_path);
   } catch {
     await deleteLocalTransaction(id);
     await SyncService.refreshPendingCount();

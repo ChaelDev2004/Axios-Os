@@ -18,6 +18,7 @@ import {
   Menu,
   Moon,
   Plus,
+  ScanLine,
   Search,
   Settings,
   Sparkles,
@@ -34,6 +35,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useConnectivityStore } from "@/features/offline/stores/connectivity.store";
+import { useReceiptScannerStore } from "@/features/finance/stores/receipt-scanner.store";
 import {
   DashboardNavProvider,
   type DashboardSection,
@@ -761,13 +763,23 @@ function useMobileTabSwipe(
 
 function MobileBottomNav() {
   const { active, setActive } = useDashboardNav();
+  const openScanner = useReceiptScannerStore((s) => s.open);
   const activeIndex = MOBILE_TABS.findIndex((tab) => tab.id === active);
+  const scanAction = {
+    label: "Scan receipt",
+    icon: ScanLine,
+    onClick: () => {
+      setActive("cashflow");
+      openScanner();
+    },
+  };
 
   return (
     <div className="axion-bottom-nav pointer-events-none fixed inset-x-0 bottom-0 z-40 px-3 pb-3 lg:hidden">
       <div className="pointer-events-auto mx-auto w-full max-w-lg">
         <InteractiveMenu
           items={MOBILE_MENU_ITEMS}
+          centerAction={scanAction}
           activeIndex={activeIndex}
           onItemSelect={(index) => {
             const next = MOBILE_TABS[index];
@@ -802,7 +814,13 @@ export function AxionShell({ children }: { children: ReactNode }) {
     return () => mq.removeEventListener("change", sync);
   }, []);
 
-  useMobileTabSwipe(active, setActive, isMobileViewport && !mobileMenuOpen && !commandOpen);
+  const isScannerOpen = useReceiptScannerStore((s) => s.isOpen);
+
+  useMobileTabSwipe(
+    active,
+    setActive,
+    isMobileViewport && !mobileMenuOpen && !commandOpen && !isScannerOpen
+  );
 
   // Fix: Improved keyboard shortcuts with better handling
   useEffect(() => {

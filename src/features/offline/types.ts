@@ -1,3 +1,5 @@
+import type { PaymentMethod, ScanSource } from "@/features/auth/types/database.types";
+
 export type SyncEntity =
   | "tasks"
   | "transactions"
@@ -49,6 +51,12 @@ export type OfflineTransaction = {
   category: string | null;
   description: string | null;
   transaction_date: string;
+  merchant: string | null;
+  payment_method: PaymentMethod | null;
+  scan_source: ScanSource;
+  receipt_image_path: string | null;
+  ocr_text: string | null;
+  ocr_confidence: number | null;
   created_at: string;
   _offline: OfflineMeta;
 };

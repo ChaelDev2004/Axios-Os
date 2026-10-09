@@ -8,6 +8,19 @@ export type Json =
 
 export type TransactionType = "income" | "expense";
 
+export type PaymentMethod = "cash" | "card" | "gcash" | "maya" | "bank_transfer" | "other";
+
+export type ScanSource = "manual" | "scanner";
+
+export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
+  cash: "Cash",
+  card: "Card",
+  gcash: "GCash",
+  maya: "Maya",
+  bank_transfer: "Bank Transfer",
+  other: "Other",
+};
+
 export interface Database {
   public: {
     Tables: {
@@ -448,6 +461,12 @@ export interface Database {
           category: string | null;
           description: string | null;
           transaction_date: string;
+          merchant: string | null;
+          payment_method: PaymentMethod | null;
+          scan_source: ScanSource;
+          receipt_image_path: string | null;
+          ocr_text: string | null;
+          ocr_confidence: number | null;
           created_at: string;
         };
         Insert: {
@@ -458,6 +477,12 @@ export interface Database {
           category?: string | null;
           description?: string | null;
           transaction_date?: string;
+          merchant?: string | null;
+          payment_method?: PaymentMethod | null;
+          scan_source?: ScanSource;
+          receipt_image_path?: string | null;
+          ocr_text?: string | null;
+          ocr_confidence?: number | null;
           created_at?: string;
         };
         Update: {
@@ -468,6 +493,12 @@ export interface Database {
           category?: string | null;
           description?: string | null;
           transaction_date?: string;
+          merchant?: string | null;
+          payment_method?: PaymentMethod | null;
+          scan_source?: ScanSource;
+          receipt_image_path?: string | null;
+          ocr_text?: string | null;
+          ocr_confidence?: number | null;
           created_at?: string;
         };
         Relationships: [
