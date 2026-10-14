@@ -20,15 +20,17 @@ import {
   formatLockMessage,
   getRequestClientIp,
   isAuthRateLimited,
-  isCommonPassword,
   logAuthEvent,
   nextLockState,
 } from "@/features/auth/lib/auth-security.server";
 import {
   createSessionForEmail,
   getProfileByEmail,
-  getPostLoginRedirect,
 } from "@/features/auth/services/auth.service";
+import {
+  loginWithPassword,
+  registerWithPassword,
+} from "@/features/auth/services/password-auth.service";
 import type { AuthActionResult } from "@/features/auth/types/database.types";
 
 function getAppUrl() {
@@ -43,81 +45,15 @@ export async function registerAction(
     return { success: false, error: parsed.error.issues[0]?.message ?? "Invalid input" };
   }
 
-  const { fullName, email, password } = parsed.data;
-  const normalizedEmail = email.toLowerCase().trim();
-  const ip = await getRequestClientIp();
-
-  if (isCommonPassword(password)) {
-    await logAuthEvent({
-      kind: "register_fail",
-      email: normalizedEmail,
-      ip,
-      meta: { reason: "common_password" },
-    });
-    return {
-      success: false,
-      error: "Choose a stronger, unique password that is not commonly used.",
-    };
-  }
-
-  if (await isAuthRateLimited({ email: normalizedEmail, ip })) {
-    await logAuthEvent({
-      kind: "rate_limited",
-      email: normalizedEmail,
-      ip,
-      meta: { flow: "register" },
-    });
-    return {
-      success: false,
-      error: "Too many attempts from this network. Please wait and try again.",
-    };
-  }
-
-  const supabase = await createClient();
-
-  const { data, error } = await supabase.auth.signUp({
-    email: normalizedEmail,
-    password,
-    options: {
-      data: { full_name: fullName },
-      emailRedirectTo: `${getAppUrl()}/auth/callback`,
-    },
-  });
-
-  if (error) {
-    await logAuthEvent({
-      kind: "register_fail",
-      email: normalizedEmail,
-      ip,
-      meta: { reason: error.message },
-    });
-    return { success: false, error: error.message };
-  }
-
-  if (!data.user) {
-    return { success: false, error: "Registration failed. Please try again." };
-  }
-
-  const admin = createAdminClient();
-  await admin.from("profiles").upsert({
-    id: data.user.id,
-    full_name: fullName,
-    email: normalizedEmail,
-    has_pin: false,
-  });
-
-  if (!data.session) {
-    return {
-      success: true,
-      data: { redirectTo: "/auth/login" },
-      message: "Check your email to confirm your account, then sign in.",
-    };
+  const result = await registerWithPassword(parsed.data);
+  if (!result.success) {
+    return { success: false, error: result.error, lockedUntil: result.lockedUntil };
   }
 
   return {
     success: true,
-    data: { redirectTo: "/auth/setup-pin" },
-    message: "Account created successfully.",
+    data: { redirectTo: result.data.redirectTo },
+    message: result.message,
   };
 }
 
@@ -129,119 +65,12 @@ export async function loginAction(
     return { success: false, error: parsed.error.issues[0]?.message ?? "Invalid input" };
   }
 
-  const { email, password } = parsed.data;
-  const normalizedEmail = email.toLowerCase().trim();
-  const ip = await getRequestClientIp();
-  const admin = createAdminClient();
-  const profile = await getProfileByEmail(normalizedEmail);
-
-  if (await isAuthRateLimited({ email: normalizedEmail, ip })) {
-    await logAuthEvent({
-      kind: "rate_limited",
-      email: normalizedEmail,
-      ip,
-      meta: { flow: "password" },
-    });
-    return {
-      success: false,
-      error: "Too many login attempts. Please wait and try again.",
-    };
+  const result = await loginWithPassword(parsed.data);
+  if (!result.success) {
+    return { success: false, error: result.error, lockedUntil: result.lockedUntil };
   }
 
-  if (profile && isLocked(profile.password_locked_until)) {
-    const lockedUntil = profile.password_locked_until!;
-    return {
-      success: false,
-      error: formatLockMessage(lockedUntil),
-      lockedUntil,
-    };
-  }
-
-  const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithPassword({
-    email: normalizedEmail,
-    password,
-  });
-
-  if (error) {
-    if (profile) {
-      const next = nextLockState({
-        attempts: profile.password_attempts ?? 0,
-        lockLevel: profile.password_lock_level ?? 0,
-        lockedUntil: profile.password_locked_until,
-      });
-
-      await admin
-        .from("profiles")
-        .update({
-          password_attempts: next.attempts,
-          password_lock_level: next.lockLevel,
-          password_locked_until: next.lockedUntil,
-        })
-        .eq("id", profile.id);
-
-      await logAuthEvent({
-        kind: next.lockedUntil ? "password_lock" : "password_fail",
-        email: normalizedEmail,
-        userId: profile.id,
-        ip,
-        meta: {
-          attempts: next.attempts,
-          lockLevel: next.lockLevel,
-        },
-      });
-
-      if (next.lockedUntil) {
-        return {
-          success: false,
-          error: formatLockMessage(next.lockedUntil),
-          lockedUntil: next.lockedUntil,
-        };
-      }
-
-      const remaining = MAX_PIN_ATTEMPTS - next.attempts;
-      return {
-        success: false,
-        error: `Invalid email or password. ${remaining} attempt${remaining === 1 ? "" : "s"} remaining.`,
-      };
-    }
-
-    await logAuthEvent({
-      kind: "password_fail",
-      email: normalizedEmail,
-      ip,
-      meta: { reason: "unknown_user_or_invalid" },
-    });
-    return { success: false, error: "Invalid email or password." };
-  }
-
-  if (profile) {
-    const cleared = clearLockState();
-    await admin
-      .from("profiles")
-      .update({
-        password_attempts: cleared.attempts,
-        password_lock_level: cleared.lockLevel,
-        password_locked_until: cleared.lockedUntil,
-      })
-      .eq("id", profile.id);
-  }
-
-  await logAuthEvent({
-    kind: "password_success",
-    email: normalizedEmail,
-    userId: profile?.id,
-    ip,
-  });
-
-  // If MFA is enrolled, Supabase keeps AAL1 until verified
-  const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-  if (aal?.currentLevel === "aal1" && aal.nextLevel === "aal2") {
-    return { success: true, data: { redirectTo: "/auth/mfa" } };
-  }
-
-  const redirectTo = await getPostLoginRedirect();
-  return { success: true, data: { redirectTo } };
+  return { success: true, data: { redirectTo: result.data.redirectTo } };
 }
 
 export async function pinLoginAction(

@@ -33,6 +33,12 @@ export const registerSchema = z
     path: ["confirmPassword"],
   });
 
+export const apiRegisterSchema = z.object({
+  fullName: z.string().min(2, "Full name must be at least 2 characters"),
+  email: emailSchema,
+  password: passwordSchema,
+});
+
 export const loginSchema = z.object({
   email: emailSchema,
   password: z.string().min(1, "Password is required"),
@@ -89,6 +95,7 @@ export const changePinSchema = z
   });
 
 export type RegisterInput = z.infer<typeof registerSchema>;
+export type ApiRegisterInput = z.infer<typeof apiRegisterSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type PinLoginInput = z.infer<typeof pinLoginSchema>;
 export type SetupPinInput = z.infer<typeof setupPinSchema>;
