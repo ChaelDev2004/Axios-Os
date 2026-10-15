@@ -63,20 +63,64 @@ export const forgotPinSchema = z.object({
   email: emailSchema,
 });
 
+export const avatarUrlSchema = z
+  .string()
+  .trim()
+  .optional()
+  .refine(
+    (value) =>
+      !value ||
+      value.startsWith("/") ||
+      value.startsWith("http://") ||
+      value.startsWith("https://"),
+    "Enter a valid image URL"
+  );
+
 export const updateProfileSchema = z.object({
   fullName: z.string().min(2, "Full name must be at least 2 characters"),
-  avatarUrl: z
-    .string()
-    .trim()
-    .optional()
-    .refine(
-      (value) =>
-        !value ||
-        value.startsWith("/") ||
-        value.startsWith("http://") ||
-        value.startsWith("https://"),
-      "Enter a valid image URL"
-    ),
+  avatarUrl: avatarUrlSchema,
+});
+
+const fullNameField = z
+  .string()
+  .trim()
+  .min(2, "Full name must be at least 2 characters")
+  .max(80, "Full name must be at most 80 characters");
+
+export const apiCreateProfileSchema = z
+  .object({
+    fullName: fullNameField.optional(),
+    full_name: fullNameField.optional(),
+    avatarUrl: avatarUrlSchema,
+    avatar_url: avatarUrlSchema,
+  })
+  .transform((data) => ({
+    fullName: data.fullName ?? data.full_name ?? "",
+    avatarUrl: data.avatarUrl ?? data.avatar_url ?? "",
+  }))
+  .refine((data) => data.fullName.length >= 2, {
+    message: "Full name must be at least 2 characters",
+    path: ["fullName"],
+  });
+
+export const apiPatchProfileSchema = z
+  .object({
+    fullName: fullNameField.optional(),
+    full_name: fullNameField.optional(),
+    avatarUrl: avatarUrlSchema,
+    avatar_url: avatarUrlSchema,
+  })
+  .transform((data) => ({
+    fullName: data.fullName ?? data.full_name,
+    avatarUrl: data.avatarUrl ?? data.avatar_url,
+  }))
+  .refine(
+    (data) => data.fullName !== undefined || data.avatarUrl !== undefined,
+    { message: "Provide fullName or avatarUrl to update" }
+  );
+
+export const apiDeleteProfileSchema = z.object({
+  password: z.string().min(1, "Password is required to delete your profile"),
 });
 
 export const changePinSchema = z
@@ -101,4 +145,6 @@ export type PinLoginInput = z.infer<typeof pinLoginSchema>;
 export type SetupPinInput = z.infer<typeof setupPinSchema>;
 export type ForgotPinInput = z.infer<typeof forgotPinSchema>;
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
+export type ApiCreateProfileInput = z.output<typeof apiCreateProfileSchema>;
+export type ApiPatchProfileInput = z.output<typeof apiPatchProfileSchema>;
 export type ChangePinInput = z.infer<typeof changePinSchema>;

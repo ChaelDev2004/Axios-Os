@@ -18,66 +18,67 @@ import {
   Wifi,
 } from "lucide-react";
 
-import type { TransactionType } from "@/features/auth/types/database.types";
+import {
+  CATEGORY_META,
+  findCategoryMeta,
+  firstCategoryFor,
+  isCategoryAllowed,
+  normalizeCategoryKey,
+  type CategoryMeta,
+} from "@/features/finance/lib/categories-data";
 
-export type CategoryDef = {
-  id: string;
-  label: string;
-  icon: ReactNode;
-  color: string;
-  types: TransactionType[];
+export type CategoryDef = CategoryMeta & { icon: ReactNode };
+
+const ICON_STYLE = { height: 16, width: 16 };
+
+const CATEGORY_ICONS: Record<string, ReactNode> = {
+  salary: <Banknote style={ICON_STYLE} />,
+  freelance: <Laptop style={ICON_STYLE} />,
+  business: <Briefcase style={ICON_STYLE} />,
+  gift: <Gift style={ICON_STYLE} />,
+  food: <Utensils style={ICON_STYLE} />,
+  coffee: <Coffee style={ICON_STYLE} />,
+  transport: <Car style={ICON_STYLE} />,
+  shopping: <ShoppingBag style={ICON_STYLE} />,
+  home: <Home style={ICON_STYLE} />,
+  tools: <Wifi style={ICON_STYLE} />,
+  health: <HeartPulse style={ICON_STYLE} />,
+  education: <GraduationCap style={ICON_STYLE} />,
+  savings: <PiggyBank style={ICON_STYLE} />,
+  other: <MoreHorizontal style={ICON_STYLE} />,
 };
 
-export const CATEGORIES: CategoryDef[] = [
-  { id: "salary", label: "Salary", icon: <Banknote style={{ height: 16, width: 16 }} />, color: "#34d399", types: ["income"] },
-  { id: "freelance", label: "Freelance", icon: <Laptop style={{ height: 16, width: 16 }} />, color: "#60a5fa", types: ["income"] },
-  { id: "business", label: "Business", icon: <Briefcase style={{ height: 16, width: 16 }} />, color: "#818cf8", types: ["income"] },
-  { id: "gift", label: "Gift", icon: <Gift style={{ height: 16, width: 16 }} />, color: "#f472b6", types: ["income", "expense"] },
-  { id: "food", label: "Food", icon: <Utensils style={{ height: 16, width: 16 }} />, color: "#fbbf24", types: ["expense"] },
-  { id: "coffee", label: "Coffee", icon: <Coffee style={{ height: 16, width: 16 }} />, color: "#d6b48c", types: ["expense"] },
-  { id: "transport", label: "Transport", icon: <Car style={{ height: 16, width: 16 }} />, color: "#38bdf8", types: ["expense"] },
-  { id: "shopping", label: "Shopping", icon: <ShoppingBag style={{ height: 16, width: 16 }} />, color: "#c084fc", types: ["expense"] },
-  { id: "home", label: "Home", icon: <Home style={{ height: 16, width: 16 }} />, color: "#a78bfa", types: ["expense"] },
-  { id: "tools", label: "Tools", icon: <Wifi style={{ height: 16, width: 16 }} />, color: "#818cf8", types: ["expense"] },
-  { id: "health", label: "Health", icon: <HeartPulse style={{ height: 16, width: 16 }} />, color: "#fb7185", types: ["expense"] },
-  { id: "education", label: "Education", icon: <GraduationCap style={{ height: 16, width: 16 }} />, color: "#2dd4bf", types: ["expense"] },
-  { id: "savings", label: "Savings", icon: <PiggyBank style={{ height: 16, width: 16 }} />, color: "#4ade80", types: ["expense", "income"] },
-  { id: "other", label: "Other", icon: <MoreHorizontal style={{ height: 16, width: 16 }} />, color: "#94a3b8", types: ["income", "expense"] },
-];
-
-export function normalizeCategoryKey(value: string | null | undefined): string {
-  return (value ?? "").trim().toLowerCase();
-}
+export const CATEGORIES: CategoryDef[] = CATEGORY_META.map((category) => ({
+  ...category,
+  icon: CATEGORY_ICONS[category.id] ?? <Wallet style={ICON_STYLE} />,
+}));
 
 export function resolveCategory(name: string | null | undefined): CategoryDef {
-  const key = normalizeCategoryKey(name);
-  if (!key) {
+  const found = findCategoryMeta(name);
+  if (!found) {
+    const key = normalizeCategoryKey(name);
+    if (!key) {
+      return {
+        id: "uncategorized",
+        label: "Uncategorized",
+        icon: <Sparkles style={ICON_STYLE} />,
+        color: "#94a3b8",
+        types: ["income", "expense"],
+      };
+    }
     return {
-      id: "uncategorized",
-      label: "Uncategorized",
-      icon: <Sparkles style={{ height: 16, width: 16 }} />,
-      color: "#94a3b8",
+      id: key,
+      label: name!.trim(),
+      icon: <Wallet style={ICON_STYLE} />,
+      color: "#64748b",
       types: ["income", "expense"],
     };
   }
-  const found = CATEGORIES.find((c) => c.id === key || c.label.toLowerCase() === key);
-  if (found) return found;
+
   return {
-    id: key,
-    label: name!.trim(),
-    icon: <Wallet style={{ height: 16, width: 16 }} />,
-    color: "#64748b",
-    types: ["income", "expense"],
+    ...found,
+    icon: CATEGORY_ICONS[found.id] ?? <Wallet style={ICON_STYLE} />,
   };
 }
 
-export function firstCategoryFor(type: TransactionType): string {
-  return CATEGORIES.find((c) => c.types.includes(type))?.label ?? "Other";
-}
-
-export function isCategoryAllowed(label: string, type: TransactionType): boolean {
-  const key = normalizeCategoryKey(label);
-  return CATEGORIES.some(
-    (c) => c.types.includes(type) && (c.id === key || c.label.toLowerCase() === key)
-  );
-}
+export { firstCategoryFor, isCategoryAllowed, normalizeCategoryKey };

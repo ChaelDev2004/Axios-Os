@@ -1,5 +1,5 @@
 import type { TransactionType } from "@/features/auth/types/database.types";
-import { isCategoryAllowed } from "@/features/finance/lib/categories";
+import { isCategoryAllowed } from "@/features/finance/lib/categories-data";
 
 export interface AmountCandidate {
   value: number;

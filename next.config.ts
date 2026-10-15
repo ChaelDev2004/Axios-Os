@@ -8,6 +8,7 @@ const nextConfig: NextConfig = {
     "localhost",
     "192.168.254.135",
   ],
+  serverExternalPackages: ["tesseract.js"],
   transpilePackages: [
     "three",
     "meshline",
